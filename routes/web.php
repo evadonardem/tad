@@ -15,4 +15,5 @@ Route::get('/', function () {
     return view('welcome');
 });
 
-Route::get('/connect', 'TAD@index');
+Route::get('/server', 'TAD@server');
+Route::get('/client', 'TAD@client');
