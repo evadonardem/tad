@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "f8649d920c5558eada29876420daed2e",
+    "content-hash": "94d4bf9ac7f4a933030e46a346ee2917",
     "packages": [
         {
             "name": "dnoegel/php-xdg-base-dir",
@@ -960,16 +960,16 @@
         },
         {
             "name": "opis/closure",
-            "version": "3.3.1",
+            "version": "3.4.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/opis/closure.git",
-                "reference": "92927e26d7fc3f271efe1f55bdbb073fbb2f0722"
+                "reference": "60a97fff133b1669a5b1776aa8ab06db3f3962b7"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/opis/closure/zipball/92927e26d7fc3f271efe1f55bdbb073fbb2f0722",
-                "reference": "92927e26d7fc3f271efe1f55bdbb073fbb2f0722",
+                "url": "https://api.github.com/repos/opis/closure/zipball/60a97fff133b1669a5b1776aa8ab06db3f3962b7",
+                "reference": "60a97fff133b1669a5b1776aa8ab06db3f3962b7",
                 "shasum": ""
             },
             "require": {
@@ -1017,7 +1017,7 @@
                 "serialization",
                 "serialize"
             ],
-            "time": "2019-07-09T21:58:11+00:00"
+            "time": "2019-09-02T21:07:33+00:00"
         },
         {
             "name": "paragonie/random_compat",
@@ -2889,42 +2889,6 @@
                 "environment"
             ],
             "time": "2019-08-27T17:00:38+00:00"
-        },
-        {
-            "name": "wnasich/php_zklib",
-            "version": "1.3",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/wnasich/php_zklib.git",
-                "reference": "91151a43f7f74b5a3de66a0e60adf1809565d6dd"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/wnasich/php_zklib/zipball/91151a43f7f74b5a3de66a0e60adf1809565d6dd",
-                "reference": "91151a43f7f74b5a3de66a0e60adf1809565d6dd",
-                "shasum": ""
-            },
-            "require": {
-                "php": ">=5.3.3"
-            },
-            "type": "library",
-            "autoload": {
-                "psr-4": {
-                    "ZKLib\\": "src/"
-                }
-            },
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "MIT"
-            ],
-            "description": "PHP library for communication with ZKTeco Attendance Machine",
-            "homepage": "http://github.com/wnasich/php_zklib",
-            "keywords": [
-                "SBTS H0201",
-                "time-attendance",
-                "zkteco"
-            ],
-            "time": "2017-07-07T01:39:51+00:00"
         }
     ],
     "packages-dev": [

@@ -15,5 +15,6 @@ Route::get('/', function () {
     return view('welcome');
 });
 
-Route::get('/server', 'TAD@server');
-Route::get('/client', 'TAD@client');
+Route::get('/users', 'TAD@users');
+Route::get('/attendance', 'TAD@attendance');
+Route::get('/test', 'TAD@test');
