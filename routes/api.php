@@ -17,8 +17,7 @@ Route::middleware('auth:api')->get('/user', function (Request $request) {
     return $request->user();
 });
 
-Route::prefix('tad')->group(function() {
-  Route::get('users', 'TAD@users');
-  Route::get('users-add', 'TAD@storeUser');
-  Route::get('clear-users', 'TAD@clearUsers');
+Route::prefix('biometrics')->group(function() {
+  Route::get('flush','Api\V1\BiometricUsersController@flush');
+  Route::resource('users', 'Api\V1\BiometricUsersController');
 });

@@ -15,13 +15,19 @@ class TAD extends Controller
       $this->zk->connect();
     }
 
+    public function register()
+    {
+      //return $this->zk->getUserTemplateAll(2);
+      //return $this->zk->startEnroll(1, 0);
+      $this->zk->deleteUser(2);
+    }
+
     public function users()
     {
       $users = $this->zk->getUser();
-
       $this->zk->disconnect();
 
-      return $users;
+      return view('users.list', ['users' => $users]);
     }
 
     public function attendance()

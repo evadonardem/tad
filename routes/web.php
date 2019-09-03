@@ -15,6 +15,7 @@ Route::get('/', function () {
     return view('welcome');
 });
 
+Route::get('/register', 'TAD@register');
 Route::get('/users', 'TAD@users');
 Route::get('/attendance', 'TAD@attendance');
 Route::get('/test', 'TAD@test');
