@@ -13,11 +13,16 @@ use Illuminate\Http\Request;
 |
 */
 
-Route::middleware('auth:api')->get('/user', function (Request $request) {
-    return $request->user();
-});
+$api = app('Dingo\Api\Routing\Router');
 
-Route::prefix('biometrics')->group(function() {
-  Route::get('flush','Api\V1\BiometricUsersController@flush');
-  Route::resource('users', 'Api\V1\BiometricUsersController');
+$api->version('v1', function ($api) {
+  $api->get('/', function () {
+    return 'TAD API';
+  });
+  $api->group(['prefix' => 'biometric'], function ($api) {
+    $api->get('info', 'App\Http\Controllers\Api\V1\BiometricInfoController@index');
+    $api->resource('users', 'App\Http\Controllers\Api\V1\BiometricUsersController');
+    $api->get('attendance-logs', 'App\Http\Controllers\Api\V1\BiometricAttendanceController@index');
+    $api->get('flush', 'App\Http\Controllers\Api\V1\BiometricUsersController@flush');
+  });
 });

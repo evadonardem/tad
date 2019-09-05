@@ -16,6 +16,6 @@ Route::get('/', function () {
 });
 
 Route::get('/register', 'TAD@register');
-Route::get('/users', 'TAD@users');
+Route::get('/biometric-users', 'TAD@users');
 Route::get('/attendance', 'TAD@attendance');
 Route::get('/test', 'TAD@test');

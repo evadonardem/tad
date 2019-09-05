@@ -1021,8 +1021,8 @@ class ZKLibrary {
 					$state = hexdec(substr( $u[1], 56, 2 ) );
 					$timestamp = $this->decodeTime(hexdec($this->reverseHex(substr($u[1], 58, 8))));
 					array_push($attendance, [
-						'id' => $uid,
-						'user_id' => $id,
+						'record_id' => $uid,
+						'biometric_id' => $id,
 						'state' => $state,
 						'timestamp' => $timestamp
 					]);

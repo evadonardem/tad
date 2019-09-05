@@ -45,7 +45,7 @@
 <script type="text/javascript">
   $(function() {
     var dataTable = $('table').DataTable({
-      'ajax': "{{url('api/biometrics/users')}}",
+      'ajax': "{{url('api/biometric/users')}}",
       'columns': [
         { 'data': 'biometric_id' },
         { 'data': 'name' },
@@ -57,13 +57,14 @@
     var newUserFrm = $('#newUserFrm');
     var registerBtn = $('#registerBtn');
     registerBtn.click(function() {
-      var url = "{{url('api/biometrics/users')}}"
+      var url = "{{url('api/biometric/users')}}"
       var data = newUserFrm.serialize();
       $.ajax({
         url: url,
         method: 'POST',
         data: data,
         success: function(response) {
+          newUserFrm[0].reset();
           dataTable.ajax.reload();
         }
       });
