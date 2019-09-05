@@ -25,7 +25,7 @@ class BiometricUsersController extends Controller
     {
         $users = $this->zk->getUser();
 
-        return $users;
+        return response()->json(['data' => $users]);
     }
 
     /**
@@ -36,8 +36,12 @@ class BiometricUsersController extends Controller
      */
     public function store(Request $request)
     {
+
         $attributes = $request->only(['school_id', 'biometric_id', 'name']);
-        $newRecordId = ((int)max(array_keys($this->zk->getUser()))) + 1;
+
+        $users = $this->zk->getUser();
+        $recordIds = array_column($users, 'record_id');
+        $newRecordId = ((int)max($recordIds)) + 1;
 
         $this->zk->setUser($newRecordId, $attributes['biometric_id'], $attributes['name'], '', 0);
     }

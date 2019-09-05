@@ -3,7 +3,7 @@
 @section('title', 'TAD Users')
 
 @section('content')
-<h1>TAD Users</h1>
+<h1><i class="fa fa-users"></i> Biometric Users</h1>
 
 <div class="row">
   <div class="col">
@@ -17,14 +17,6 @@
         </tr>
       </thead>
       <tbody>
-        @foreach($users as $user)
-        <tr>
-          <th scope="row">{{$user['user_id']}}</th>
-          <td>{{$user['name']}}</td>
-          <td><i class="fa fa-hand-pointer-o" title="Fingerprint"></i></td>
-          <td><i class="fa fa-key" title="PIN"></i></td>
-        </tr>
-        @endforeach
       </tbody>
     </table>
   </div>
@@ -52,6 +44,16 @@
 @section('custom-scripts')
 <script type="text/javascript">
   $(function() {
+    var dataTable = $('table').DataTable({
+      'ajax': "{{url('api/biometrics/users')}}",
+      'columns': [
+        { 'data': 'biometric_id' },
+        { 'data': 'name' },
+        { 'data': 'biometric_id' },
+        { 'data': 'biometric_id' },
+      ]
+    });
+
     var newUserFrm = $('#newUserFrm');
     var registerBtn = $('#registerBtn');
     registerBtn.click(function() {
@@ -62,7 +64,7 @@
         method: 'POST',
         data: data,
         success: function(response) {
-          location.reload(true);
+          dataTable.ajax.reload();
         }
       });
     });

@@ -709,8 +709,9 @@ class ZKLibrary {
 					{
 						$name = $uid;
 					}
-					$users[$uid] = [
-						'user_id' => $userid,
+					$users[] = [
+						'record_id' => $uid,
+						'biometric_id' => $userid,
 						'name' => $name,
 						'role_id' => intval($role),
 						'password' => $password
