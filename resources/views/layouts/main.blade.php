@@ -18,10 +18,10 @@
         <div class="collapse navbar-collapse" id="navbarNavDropdown">
           <ul class="navbar-nav">
             <li class="nav-item active">
-              <a class="nav-link" href="#">Home <span class="sr-only">(current)</span></a>
+              <a class="nav-link" href="#"><i class="fa fa-dashboard"></i> Dashboard <span class="sr-only">(current)</span></a>
             </li>
-            <li class="nav-item">
-              <a class="nav-link" href="#">Features</a>
+            <li class="nav-item {{ Request::is('biometric/attendance-logs') ? 'active' : null }}">
+              <a class="nav-link" href="{{ url('biometric/attendance-logs') }}"><i class="fa fa-calendar"></i> Attendance Logs</a>
             </li>
             <li class="nav-item">
               <a class="nav-link" href="#">Pricing</a>
@@ -36,8 +36,8 @@
                 <a class="dropdown-item" href="#">Something else here</a>
               </div>
             </li>
-            <li class="nav-item">
-              <a class="nav-link" href="{{ url('users') }}">User Management</a>
+            <li class="nav-item {{ Request::is('biometric/users') ? 'active' : null }}">
+              <a class="nav-link" href="{{ url('biometric/users') }}"><i class="fa fa-users"></i> Biometric Users</a>
             </li>
           </ul>
         </div>

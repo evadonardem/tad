@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use App\ZKLib\ZKLibrary;
 use Dingo\Api\Routing\Helpers;
+use App\Models\AttendanceLog;
 
 class BiometricAttendanceController extends Controller
 {
@@ -26,19 +27,33 @@ class BiometricAttendanceController extends Controller
      */
     public function index()
     {
+        $this->zk->disableDevice();
+
         $users = $this->api->get('biometric/users');
         $users = $users['data'];
         $keys = [];
 
         $logs = $this->zk->getAttendance();
-        foreach($logs as &$log) {
+        foreach($logs as $log) {
           $biometricId = $log['biometric_id'];
           $filteredUser = array_filter($users, function($user) use ($biometricId) {
             return $user['biometric_id'] == $biometricId;
           });
           $user = array_pop($filteredUser);
-          $log['name'] = $user['name'];
+
+          AttendanceLog::create([
+            'biometric_record_id' => $user['record_id'],
+            'biometric_id' => $log['biometric_id'],
+            'biometric_name' => $user['name'],
+            'biometric_timestamp' => $log['timestamp']
+          ]);
         }
+
+        $this->zk->clearAttendance();
+        $this->zk->enableDevice();
+        $this->zk->disconnect();
+
+        $logs = AttendanceLog::all();
 
         return response()->json(['data' => $logs]);
     }
