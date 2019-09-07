@@ -1,8 +1,6 @@
 <?php
 namespace App\ZKLib;
 
-error_reporting(0);
-
 define('CMD_CONNECT', 1000);
 define('CMD_EXIT', 1001);
 define('CMD_ENABLEDEVICE', 1002);
@@ -73,7 +71,6 @@ class ZKLibrary {
 			$this->port = $port;
 		}
 		$this->socket = socket_create(AF_INET, SOCK_DGRAM, SOL_UDP);
-		$this->setTimeout($this->sec, $this->usec);
 	}
 	public function __destruct()
 	{
@@ -262,25 +259,34 @@ class ZKLibrary {
 	function createHeader($command, $chksum, $session_id, $reply_id, $command_string)
 	{
 		$buf = pack('SSSS', $command, $chksum, $session_id, $reply_id).$command_string;
-		$buf = unpack('C'.(8+strlen($command_string)).'c', $buf);
-		$u = unpack('S', $this->checkSum($buf));
-		if(is_array($u))
-		{
-			while(list($key) = each($u))
-			{
-				$u = $u[$key];
-				break;
-			}
-		}
-		$chksum = $u;
 		$reply_id += 1;
 		if($reply_id >= USHRT_MAX)
 		{
 			$reply_id -= USHRT_MAX;
 		}
-		$buf = pack('SSSS', $command, $chksum, $session_id, $reply_id);
+		$buf = pack('SSSS', $command, $this->createCheckSum($buf), $session_id, $reply_id);
 		return $buf.$command_string;
 	}
+
+	protected function createCheckSum($buffer)
+	{
+		$checksum = 0;
+		if (strlen($buffer)%2){
+			$buffer .=chr(0);
+		}
+		foreach (unpack('v*', $buffer) as $data){
+			$checksum += $data;
+			if ($checksum > USHRT_MAX){
+				$checksum -= USHRT_MAX;
+			}
+		}
+		$checksum = -$checksum - 1;
+		while ($checksum < 0){
+			$checksum += USHRT_MAX;
+		}
+		return ($checksum & USHRT_MAX);
+	}
+
 	private function checkValid($reply)
 	{
 		$u = unpack('H2h1/H2h2', substr($reply, 0, 8) );

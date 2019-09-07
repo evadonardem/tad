@@ -10,13 +10,7 @@
 | contains the "web" middleware group. Now create something great!
 |
 */
-
-Route::get('/', function () {
-    return view('welcome');
-});
-
-Route::get('/register', 'TAD@register');
-
+Route::get('/', 'TAD@dashboard');
 Route::prefix('biometric')->group(function() {
   Route::get('users', 'TAD@users');
   Route::get('attendance-logs', 'TAD@attendanceLogs');

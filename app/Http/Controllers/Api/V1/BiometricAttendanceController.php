@@ -7,6 +7,7 @@ use App\Http\Controllers\Controller;
 use App\ZKLib\ZKLibrary;
 use Dingo\Api\Routing\Helpers;
 use App\Models\AttendanceLog;
+use Carbon\Carbon;
 
 class BiometricAttendanceController extends Controller
 {
@@ -25,8 +26,9 @@ class BiometricAttendanceController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function index()
+    public function index(Request $request)
     {
+      if($this->zk) {
         $this->zk->disableDevice();
 
         $users = $this->api->get('biometric/users');
@@ -52,9 +54,29 @@ class BiometricAttendanceController extends Controller
         $this->zk->clearAttendance();
         $this->zk->enableDevice();
         $this->zk->disconnect();
+      }
 
-        $logs = AttendanceLog::all();
+      $biometricId = $request->input('biometric_id');
+      $name = $request->input('name');
+      $year = $request->input('year') ?: Carbon::now()->format('Y');
+      $month = $request->input('month');
 
-        return response()->json(['data' => $logs]);
+      $startDate = Carbon::createFromDate($year, $month)->startOfMonth();
+      $endDate = Carbon::createFromDate($year, $month)->endOfMonth();
+
+      $logsQry = AttendanceLog::where('biometric_timestamp', '>=', $startDate->format('Y-m-d H:i:s'))
+        ->where('biometric_timestamp', '<=', $endDate->format('Y-m-d H:i:s'));
+
+      if($biometricId) {
+        $logsQry->where('biometric_id', '=', $biometricId);
+      }
+
+      if($name) {
+        $logsQry->where('biometric_name', 'like', '%' . $name . '%');
+      }
+
+      $logs = $logsQry->get();
+
+      return response()->json(['data' => $logs]);
     }
 }
