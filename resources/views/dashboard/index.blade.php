@@ -23,7 +23,7 @@
         <p class="lead">Attendance logs fetched straight from biometric device.</p>
         <hr class="my-4">
         <p class="lead text-center">
-          <a class="btn btn-primary btn-lg" href="#" role="button">Continue &raquo;</a>
+          <a class="btn btn-primary btn-lg" href="{{ url('biometric/reports') }}" role="button">Continue &raquo;</a>
         </p>
       </div>
     </div>

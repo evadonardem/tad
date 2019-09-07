@@ -14,4 +14,7 @@ Route::get('/', 'TAD@dashboard');
 Route::prefix('biometric')->group(function() {
   Route::get('users', 'TAD@users');
   Route::get('attendance-logs', 'TAD@attendanceLogs');
+  Route::get('reports', 'TAD@reports');
+  Route::get('reports/late-undertime-group', 'TAD@reportsLateUndertimeGroup');
+  Route::get('reports/late-undertime-individual', 'TAD@reportsLateUndertimeIndividual');
 });

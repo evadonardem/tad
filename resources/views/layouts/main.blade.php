@@ -23,6 +23,9 @@
             <li class="nav-item {{ Request::is('biometric/attendance-logs') ? 'active' : null }}">
               <a class="nav-link" href="{{ url('biometric/attendance-logs') }}"><i class="fa fa-calendar"></i> Attendance Logs</a>
             </li>
+            <li class="nav-item {{ Request::is('biometric/reports') ? 'active' : null }}">
+              <a class="nav-link" href="{{ url('biometric/reports') }}"><i class="fa fa-file-text"></i> Generate Reports</a>
+            </li>
             <li class="nav-item {{ Request::is('biometric/users') ? 'active' : null }}">
               <a class="nav-link" href="{{ url('biometric/users') }}"><i class="fa fa-users"></i> Biometric Users</a>
             </li>

@@ -25,4 +25,9 @@ $api->version('v1', function ($api) {
     $api->get('attendance-logs', 'App\Http\Controllers\Api\V1\BiometricAttendanceController@index');
     $api->get('flush', 'App\Http\Controllers\Api\V1\BiometricUsersController@flush');
   });
+
+  $api->group(['prefix' => 'reports'], function($api) {
+    $api->get('late-undertime-group', 'App\Http\Controllers\Api\V1\ReportsController@lateUndertimeGroup');
+    $api->get('late-undertime-individual', 'App\Http\Controllers\Api\V1\ReportsController@lateUndertimeIndividual');
+  });
 });
