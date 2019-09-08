@@ -60,16 +60,10 @@ class ZKLibrary {
 	public $timeout_sec = 5;
 	public $timeout_usec = 5000000;
 
-	public function __construct($ip = null, $port = null)
+	public function __construct($ip, $port)
 	{
-		if($ip != null)
-		{
-			$this->ip = $ip;
-		}
-		if($port != null)
-		{
-			$this->port = $port;
-		}
+		$this->ip = $ip;
+		$this->port = $port;
 		$this->socket = socket_create(AF_INET, SOCK_DGRAM, SOL_UDP);
 	}
 	public function __destruct()
@@ -78,20 +72,8 @@ class ZKLibrary {
 		unset($this->user_data);
 		unset($this->attendance_data);
 	}
-	public function connect($ip = null, $port = 4370)
+	public function connect()
 	{
-		if($ip != null)
-		{
-			$this->ip = $ip;
-		}
-		if($port != null)
-		{
-			$this->port = $port;
-		}
-		if($this->ip == null || $this->port == null)
-		{
-			return false;
-		}
 		$command = CMD_CONNECT;
 		$command_string = '';
 		$chksum = 0;

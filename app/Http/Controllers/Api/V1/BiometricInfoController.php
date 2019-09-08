@@ -28,8 +28,8 @@ class BiometricInfoController extends Controller
       $this->zk->disableDevice();
 
       $deviceName = $this->zk->getDeviceName();
-      $deviceIP = env('DEVICE_IP');
-      $devicePort = env('DEVICE_PORT');
+      $deviceIP = $this->zk->ip;
+      $devicePort = $this->zk->port;
 
       $this->zk->enableDevice();
       $this->zk->disconnect();
