@@ -23,11 +23,22 @@ class BiometricInfoController extends Controller
      */
     public function index()
     {
-        $this->zk->testVoice();
+      $this->zk->testVoice();
 
-        return response()->json(['data' => [
-            'device_name' => $this->zk->getDeviceName()
-          ]
-        ]);
+      $this->zk->disable();
+
+      $deviceName = $this->zk->getDeviceName();
+      $deviceIP = env('DEVICE_IP');
+      $devicePort = env('DEVICE_PORT');
+
+      $this->zk->enable();
+      $this->zk->disconnect();
+
+      return response()->json(['data' => [
+          'device_name' => $deviceName,
+          'device_ip' => $deviceIP,
+          'device_port' => $devicePort
+        ]
+      ]);
     }
 }

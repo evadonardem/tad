@@ -11,7 +11,7 @@
     <body>
 
       <nav class="navbar sticky-top navbar-expand-lg navbar-light bg-light">
-        <a class="navbar-brand" href="#">TAD</a>
+        <a class="navbar-brand" href="#">{{ env('APP_NAME') }}</a>
         <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNavDropdown" aria-controls="navbarNavDropdown" aria-expanded="false" aria-label="Toggle navigation">
           <span class="navbar-toggler-icon"></span>
         </button>
@@ -24,7 +24,7 @@
               <a class="nav-link" href="{{ url('biometric/attendance-logs') }}"><i class="fa fa-calendar"></i> Attendance Logs</a>
             </li>
             <li class="nav-item {{ Request::is('biometric/reports') ? 'active' : null }}">
-              <a class="nav-link" href="{{ url('biometric/reports') }}"><i class="fa fa-file-text"></i> Generate Reports</a>
+              <a class="nav-link" href="{{ url('biometric/reports') }}"><i class="fa fa-file-text"></i> Reports</a>
             </li>
             <li class="nav-item {{ Request::is('biometric/users') ? 'active' : null }}">
               <a class="nav-link" href="{{ url('biometric/users') }}"><i class="fa fa-users"></i> Biometric Users</a>

@@ -38,10 +38,13 @@ class BiometricUsersController extends Controller
     {
 
         $attributes = $request->only(['school_id', 'biometric_id', 'name']);
-
         $users = $this->zk->getUser();
-        $recordIds = array_column($users, 'record_id');
-        $newRecordId = ((int)max($recordIds)) + 1;
+        $newRecordId = 1;
+
+        if(!empty($users)) {
+          $recordIds = array_column($users, 'record_id');
+          $newRecordId = ((int)max($recordIds)) + 1;
+        }
 
         $this->zk->setUser($newRecordId, $attributes['biometric_id'], $attributes['name'], '', 0);
     }

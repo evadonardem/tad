@@ -307,7 +307,7 @@ class ZKLibrary {
 		$u = unpack('H2h1/H2h2/H2h3/H2h4/H2h5/H2h6/H2h7/H2h8', substr( $this->received_data, 0, 8) );
 		$reply_id = hexdec( $u['h8'].$u['h7'] );
 		$buf = $this->createHeader($command, $chksum, $session_id, $reply_id, $command_string);
-		socket_sendto($this->socket, $buf, strlen($buf), MSG_EOR, $this->ip, $this->port);
+		socket_sendto($this->socket, $buf, strlen($buf), 0, $this->ip, $this->port);
 		try
 		{
 			socket_recvfrom($this->socket, $this->received_data, 1024, 0, $this->ip, $this->port);
