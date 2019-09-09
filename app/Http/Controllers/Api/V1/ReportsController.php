@@ -7,7 +7,6 @@ use App\Http\Controllers\Controller;
 use App\ZKLib\ZKLibrary;
 use Dingo\Api\Routing\Helpers;
 use Carbon\Carbon;
-use Artisan;
 
 class ReportsController extends Controller
 {
@@ -17,8 +16,6 @@ class ReportsController extends Controller
 
   public function __construct()
   {
-    Artisan::call('config:cache');
-    Artisan::call('config:clear');
     $this->zk = new ZKLibrary(env('DEVICE_IP'), env('DEVICE_PORT'));
     $this->zk->connect();
   }

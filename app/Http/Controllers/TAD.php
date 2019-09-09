@@ -4,16 +4,9 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Carbon\Carbon;
-use Artisan;
 
 class TAD extends Controller
 {
-    public function __construct()
-    {
-      Artisan::call('config:cache');
-      Artisan::call('config:clear');
-    }
-
     public function dashboard()
     {
       return view('dashboard.index');

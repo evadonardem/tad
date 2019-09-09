@@ -5,7 +5,6 @@ namespace App\Http\Controllers\Api\V1;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use App\ZKLib\ZKLibrary;
-use Artisan;
 
 class BiometricUsersController extends Controller
 {
@@ -13,8 +12,6 @@ class BiometricUsersController extends Controller
 
     public function __construct()
     {
-      Artisan::call('config:cache');
-      Artisan::call('config:clear');
       $this->zk = new ZKLibrary(env('DEVICE_IP'), env('DEVICE_PORT'));
       $this->zk->connect();
     }
