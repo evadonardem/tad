@@ -12,6 +12,8 @@ class BiometricUsersController extends Controller
 
     public function __construct()
     {
+      Aritsan::call('config::cache');
+      Aritsan::call('config::clear');
       $this->zk = new ZKLibrary(env('DEVICE_IP'), env('DEVICE_PORT'));
       $this->zk->connect();
     }
