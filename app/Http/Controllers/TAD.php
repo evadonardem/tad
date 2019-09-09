@@ -7,6 +7,12 @@ use Carbon\Carbon;
 
 class TAD extends Controller
 {
+    public function __construct()
+    {
+      Artisan::call('config::cache');
+      Artisan::call('config::clear');
+    }
+
     public function dashboard()
     {
       return view('dashboard.index');
