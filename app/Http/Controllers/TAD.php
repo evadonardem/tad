@@ -10,8 +10,8 @@ class TAD extends Controller
 {
     public function __construct()
     {
-      Artisan::call('config::cache');
-      Artisan::call('config::clear');
+      Artisan::call('config:cache');
+      Artisan::call('config:clear');
     }
 
     public function dashboard()

@@ -13,8 +13,8 @@ class BiometricInfoController extends Controller
 
     public function __construct()
     {
-      Artisan::call('config::cache');
-      Artisan::call('config::clear');
+      Artisan::call('config:cache');
+      Artisan::call('config:clear');
       $this->zk = new ZKLibrary(env('DEVICE_IP'), env('DEVICE_PORT'));
       $this->zk->connect();
     }
