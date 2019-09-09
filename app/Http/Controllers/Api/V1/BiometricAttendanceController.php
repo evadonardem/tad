@@ -8,6 +8,7 @@ use App\ZKLib\ZKLibrary;
 use Dingo\Api\Routing\Helpers;
 use App\Models\AttendanceLog;
 use Carbon\Carbon;
+use Artisan;
 
 class BiometricAttendanceController extends Controller
 {

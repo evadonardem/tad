@@ -7,6 +7,7 @@ use App\Http\Controllers\Controller;
 use App\ZKLib\ZKLibrary;
 use Dingo\Api\Routing\Helpers;
 use Carbon\Carbon;
+use Artisan;
 
 class ReportsController extends Controller
 {
