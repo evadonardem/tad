@@ -15,12 +15,11 @@ class CreateAttendanceLogsTable extends Migration
     {
         Schema::create('attendance_logs', function (Blueprint $table) {
             $table->bigIncrements('id');
-            $table->unsignedInteger('biometric_record_id');
             $table->char('biometric_id', 8);
             $table->string('biometric_name', 28);
             $table->dateTime('biometric_timestamp');
             $table->timestamps();
-
+            $table->index('biometric_id');
             $table->unique(['biometric_id', 'biometric_timestamp']);
         });
     }
