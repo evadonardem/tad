@@ -8,6 +8,7 @@
 <hr class="my-4">
 
 <form id="searchFiltersFrm">
+  <input type="hidden" name="type" value="group">
   <div class="row">
     <div class="col">
       <div class="form-group">
@@ -73,12 +74,12 @@
     searchBtn.click(function() {
       var data = $('#searchFiltersFrm').serialize();
       if(dataTable) {
-        dataTable.ajax.url("{{url('api/reports/late-undertime-group')}}?"+data);
+        dataTable.ajax.url("{{url('api/reports/late-undertime')}}?"+data);
         dataTable.ajax.reload();
       } else {
         dataTable = $('table').DataTable({
           'searching': false,
-          'ajax': "{{url('api/reports/late-undertime-group')}}?"+data,
+          'ajax': "{{url('api/reports/late-undertime')}}?"+data,
           'columns': [
             { 'data': 'biometric_id' },
             { 'data': 'name' },

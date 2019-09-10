@@ -27,7 +27,6 @@ $api->version('v1', function ($api) {
   });
 
   $api->group(['prefix' => 'reports'], function($api) {
-    $api->get('late-undertime-group', 'App\Http\Controllers\Api\V1\ReportsController@lateUndertimeGroup');
-    $api->get('late-undertime-individual', 'App\Http\Controllers\Api\V1\ReportsController@lateUndertimeIndividual');
+    $api->get('late-undertime', 'App\Http\Controllers\Api\V1\ReportsController@lateUndertime');
   });
 });

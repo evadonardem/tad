@@ -20,19 +20,26 @@ class ReportsController extends Controller
     $this->zk->connect();
   }
 
-  public function lateUndertimeGroup(Request $request)
+  public function lateUndertime(Request $request)
   {
     if($this->zk) {
+      $type = $request->input('type');
       $year = $request->input('year') ?: Carbon::now()->format('Y');
       $month = $request->input('month');
       $period = $request->input('period') ?: 1;
+      $biometricId = $type == 'individual' ?
+        ($request->input('biometric_id') ? $request->input('biometric_id') : -1) 
+        : null;
 
       $this->zk->disableDevice();
 
       $users = $this->api->get('biometric/users');
       $users = $users['data'];
 
-      $attendanceLogs = $this->api->get('biometric/attendance-logs?year=' . $year . '&month=' . $month);
+      $queryParams = 'year=' . $year . '&month=' . $month;
+      $queryParams .= ($type ? '&biometric_id=' . $biometricId : '');
+
+      $attendanceLogs = $this->api->get('biometric/attendance-logs?' . $queryParams);
       $attendanceLogs = $attendanceLogs['data'];
 
       $this->zk->enableDevice();
@@ -121,10 +128,5 @@ class ReportsController extends Controller
     }
 
     return null;
-  }
-
-  public function lateUndertimeIndividual()
-  {
-
   }
 }
