@@ -28,7 +28,7 @@ class ReportsController extends Controller
       $month = $request->input('month');
       $period = $request->input('period') ?: 1;
       $biometricId = $type == 'individual' ?
-        ($request->input('biometric_id') ? $request->input('biometric_id') : -1) 
+        ($request->input('biometric_id') ? $request->input('biometric_id') : -1)
         : null;
 
       $this->zk->disableDevice();
@@ -87,7 +87,18 @@ class ReportsController extends Controller
           if(count($logs)>0) {
             $logs = array_values($logs);
             $timeIn = Carbon::createFromFormat('Y-m-d H:i:s', $logs[0]['biometric_timestamp']);
-            $timeOut = Carbon::createFromFormat('Y-m-d H:i:s', $logs[count($logs)-1]['biometric_timestamp']);
+
+            // for time-out pick first log in the afternoon
+            $timeOut = null;
+            foreach($logs as $log) {
+              $logDate = Carbon::createFromFormat('Y-m-d H:i:s', $log['biometric_timestamp']);
+              if($logDate->format('A') == 'PM') {
+                $timeOut = $logDate;
+                break;
+              }
+            }
+
+            $timeOut = $timeOut ?: Carbon::createFromFormat('Y-m-d H:i:s', $logs[count($logs)-1]['biometric_timestamp']);
 
             $timeInInMinutes = (((int)$timeIn->format('H'))*60*60
               + ((int)$timeIn->format('i')*60)

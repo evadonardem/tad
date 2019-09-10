@@ -75,7 +75,7 @@ class BiometricAttendanceController extends Controller
         $logsQry->where('biometric_name', 'like', '%' . $name . '%');
       }
 
-      $logs = $logsQry->get();
+      $logs = $logsQry->orderBy('biometric_timestamp', 'asc')->get();
 
       return response()->json(['data' => $logs]);
     }
