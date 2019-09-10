@@ -37,7 +37,7 @@ class BiometricUsersController extends Controller
     public function store(Request $request)
     {
 
-        $attributes = $request->only(['school_id', 'biometric_id', 'name']);
+        $attributes = $request->only(['biometric_id', 'name']);
         $users = $this->zk->getUser();
         $newRecordId = 1;
 

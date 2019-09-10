@@ -11,7 +11,7 @@
   <input type="hidden" name="type" value="group">
   <div class="row">
     <div class="col">
-      <div class="form-group">
+      <div class="form-group filters">
         <label for="">Year</label>
         <input type="text" class="form-control" name="year" value="{{ $currentYear }}">
       </div>
@@ -19,7 +19,7 @@
     <div class="col">
       <div class="form-group">
         <label for="">Month</label>
-        <select class="form-control" name="month">
+        <select class="form-control filters" name="month">
           @foreach($months as $key => $value)
           <option value="{{ $key }}" {{ $key == $currentMonth ? 'selected' : null }}>{{ $value }}</option>
           @endforeach
@@ -29,38 +29,53 @@
     <div class="col">
       <div class="form-group">
         <label for="">Period</label>
-        <select class="form-control" name="period">
+        <select class="form-control filters" name="period">
           <option value="1">1st Half</option>
           <option value="2">2nd Half</option>
         </select>
       </div>
     </div>
   </div>
-  <button type="button" class="btn btn-primary" id="searchBtn">Search</button>
 </form>
 
 <hr class="my-4">
 
 <div class="row">
   <div class="col">
-    <table class="table table-striped">
-      <thead>
-        <tr>
-          <th scope="col">Biometric ID</th>
-          <th scope="col">Name</th>
-          <th scope="col">Date</th>
-          <th scope="col">Expected Time-in</th>
-          <th scope="col">Expected Time-out</th>
-          <th scope="col">Time-in</th>
-          <th scope="col">Time-out</th>
-          <th scope="col">Late</th>
-          <th scope="col">Under Time</th>
-          <th scope="col">Total</th>
-        </tr>
-      </thead>
-      <tbody>
-      </tbody>
-    </table>
+    <div class="search-result" style="display: none;">
+      <table class="table table-striped">
+        <thead>
+          <tr>
+            <th scope="col">Biometric ID</th>
+            <th scope="col">Name</th>
+            <th scope="col">Date</th>
+            <th scope="col">Expected Time-in</th>
+            <th scope="col">Expected Time-out</th>
+            <th scope="col">Time-in</th>
+            <th scope="col">Time-out</th>
+            <th scope="col">Late (min.)</th>
+            <th scope="col">Under Time (min.)</th>
+            <th scope="col">Total (min.)</th>
+          </tr>
+        </thead>
+        <tbody>
+        </tbody>
+        <tfoot>
+          <tr>
+            <th></th>
+            <th></th>
+            <th></th>
+            <th></th>
+            <th></th>
+            <th></th>
+            <th></th>
+            <th></th>
+            <th style="text-align: right;">Total (min.):</th>
+            <th></th>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
   </div>
 </div>
 @endsection
@@ -69,17 +84,41 @@
 <script type="text/javascript">
   $(function() {
     var dataTable = null;
-    var searchBtn = $('#searchBtn');
+    var filters = $('.filters');
 
-    searchBtn.click(function() {
+    $('#searchFiltersFrm').submit(function(e) {
+      e.preventDefault();
+    });
+
+    filters.on('change', function() {
+      var exportTitle = 'ReportLateUndertimeByGroup';
       var data = $('#searchFiltersFrm').serialize();
+
+      $('div.search-result-loading', 'body').remove();
+      $('div.search-result').hide().before('<div class="search-result-loading"><h4><i class="fa fa-spin fa-spinner"></i> Loading...</h4></div>');
+
       if(dataTable) {
         dataTable.ajax.url("{{url('api/reports/late-undertime')}}?"+data);
-        dataTable.ajax.reload();
+        dataTable.ajax.reload(function () {
+          $('div.search-result').show();
+          $('div.search-result-loading', 'body').remove();
+        });
       } else {
         dataTable = $('table').DataTable({
+          'dom': 'Bfrtip',
+          'buttons': [
+            { extend: 'copyHtml5', title: exportTitle, footer: true },
+            { extend: 'excelHtml5', title: exportTitle, footer: true },
+            { extend: 'csvHtml5', title: exportTitle, footer: true },
+            { extend: 'pdfHtml5', title: exportTitle, footer: true }
+          ],
+          'paging': false,
           'searching': false,
           'ajax': "{{url('api/reports/late-undertime')}}?"+data,
+          'initComplete': function () {
+            $('div.search-result').show();
+            $('div.search-result-loading', 'body').remove();
+          },
           'columns': [
             { 'data': 'biometric_id' },
             { 'data': 'name' },
@@ -95,12 +134,34 @@
           'columnDefs': [
             { 'orderable': false, 'targets': [0, 1] }
           ],
-          'order': [[2, 'asc']]
+          'order': [[2, 'asc']],
+          'footerCallback': function ( row, data, start, end, display ) {
+            var api = this.api(), data;
+
+            // Remove the formatting to get integer data for summation
+            var intVal = function ( i ) {
+                return typeof i === 'string' ?
+                    i.replace(/[\$,]/g, '')*1 :
+                    typeof i === 'number' ?
+                        i : 0;
+            };
+
+            // Total over all pages
+            total = api
+                .column( 9 )
+                .data()
+                .reduce( function (a, b) {
+                    return intVal(a) + intVal(b);
+                }, 0 );
+
+            // Update footer
+            $( api.column( 9 ).footer() ).html( total );
+          }
         });
       }
     });
 
-    searchBtn.trigger('click');
+    filters.trigger('change');
   });
 </script>
 @endsection

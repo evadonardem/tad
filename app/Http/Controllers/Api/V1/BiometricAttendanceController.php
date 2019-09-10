@@ -44,7 +44,6 @@ class BiometricAttendanceController extends Controller
           $user = array_pop($filteredUser);
 
           AttendanceLog::create([
-            'biometric_record_id' => $user['record_id'],
             'biometric_id' => $log['biometric_id'],
             'biometric_name' => $user['name'],
             'biometric_timestamp' => $log['timestamp']

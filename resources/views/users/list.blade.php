@@ -12,8 +12,6 @@
         <tr>
           <th scope="col">Biometric ID</th>
           <th scope="col">Name</th>
-          <th scope="col"></th>
-          <th scope="col"></th>
         </tr>
       </thead>
       <tbody>
@@ -22,11 +20,7 @@
   </div>
   <div class="col-4">
     <form id="newUserFrm">
-      <h4>New User</h4>
-      <div class="form-group">
-        <label for="schoolId">School ID:</label>
-        <input type="text" class="form-control" id="schoolId" name="school_id" value="">
-      </div>
+      <h4><i class="fa fa-user"></i> New User</h4>
       <div class="form-group">
         <label for="userId">Biometric ID: <small>Max 8 characters</small></label>
         <input type="text" class="form-control" id="biometricId" name="biometric_id" value="" maxlength="8">
@@ -49,8 +43,6 @@
       'columns': [
         { 'data': 'biometric_id' },
         { 'data': 'name' },
-        { 'data': 'biometric_id' },
-        { 'data': 'biometric_id' },
       ]
     });
 
