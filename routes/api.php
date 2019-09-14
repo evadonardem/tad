@@ -29,4 +29,8 @@ $api->version('v1', function ($api) {
   $api->group(['prefix' => 'reports'], function($api) {
     $api->get('late-undertime', 'App\Http\Controllers\Api\V1\ReportsController@lateUndertime');
   });
+  
+  $api->group(['prefix' => 'settings'], function($api) {
+    $api->resource('common-time-shifts', 'App\Http\Controllers\Api\V1\CommonTimeShiftsController');
+  });
 });

@@ -41,6 +41,26 @@
     </div>
   </div>
 </div>
+<div class="row">
+	<div class="col-md">
+    <div class="jumbotron">
+      <div class="container">
+        <h1><i class="fa fa-cogs"></i> Settings</h1>
+        <p class="lead"><i class="fa fa-clock-o"></i> Common expected time-in/out: <span class="badge badge-success">06:30 AM to 04:30 PM</span></p>
+        <p class="lead"><i class="fa fa-users"></i> Users with active custom expected time-in/out:</p>
+        <ul>
+        	<li>20190001 Satur Cadsi <span class="badge badge-success">09:00 AM to 06:00 PM</span></li>
+	        <li>20190001 Satur Cadsi <span class="badge badge-success">09:00 AM to 06:00 PM</span></li>
+			<li>20190001 Satur Cadsi <span class="badge badge-success">09:00 AM to 06:00 PM</span></li>
+        </ul>
+        <hr class="my-4">
+        <p class="lead text-center">
+          <a class="btn btn-primary btn-lg" href="{{ url('settings') }}" role="button">Continue &raquo;</a>
+        </p>
+      </div>
+    </div>
+  </div>
+</div>
 @endsection
 
 @section('custom-scripts')

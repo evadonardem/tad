@@ -18,3 +18,5 @@ Route::prefix('biometric')->group(function() {
   Route::get('reports/late-undertime-group', 'TAD@reportsLateUndertimeGroup');
   Route::get('reports/late-undertime-individual', 'TAD@reportsLateUndertimeIndividual');
 });
+
+Route::get('settings', 'TAD@settings');

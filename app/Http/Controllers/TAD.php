@@ -102,4 +102,9 @@ class TAD extends Controller
 		'currentYear' => $currentYear
 	  ]);
     }
+    
+    public function settings() 
+    {
+    	return view('settings.index');
+    }
 }

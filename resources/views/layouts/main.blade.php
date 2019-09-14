@@ -31,6 +31,9 @@
             <li class="nav-item {{ Request::is('biometric/users') ? 'active' : null }}">
               <a class="nav-link" href="{{ url('biometric/users') }}"><i class="fa fa-users"></i> Biometric Users</a>
             </li>
+            <li class="nav-item {{ Request::is('settings') ? 'active' : null }}">
+              <a class="nav-link" href="{{ url('settings') }}"><i class="fa fa-cogs"></i> Settings</a>
+            </li>
           </ul>
         </div>
       </nav>
