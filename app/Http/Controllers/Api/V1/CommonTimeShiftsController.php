@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api\V1;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use App\Models\CommonTimeShift;
+use App\Http\Requests\StoreCommonTimeShiftRequest;
 
 class CommonTimeShiftsController extends Controller
 {
@@ -27,7 +28,7 @@ class CommonTimeShiftsController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function store(Request $request)
+    public function store(StoreCommonTimeShiftRequest $request)
     {
         $attributes = $request->only(['effectivity_date', 'expected_time_in', 'expected_time_out']);
         
