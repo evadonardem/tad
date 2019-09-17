@@ -7,6 +7,7 @@ use App\Http\Controllers\Controller;
 use App\ZKLib\ZKLibrary;
 use Dingo\Api\Routing\Helpers;
 use Carbon\Carbon;
+use App\Models\CommonTimeShift;
 
 class ReportsController extends Controller
 {
@@ -56,26 +57,43 @@ class ReportsController extends Controller
         $endDate = (clone $startDate)->endOfMonth();
       }
 
-      // expected time-in/out (default) todo: create settings
-      $expectedTimeIn = Carbon::now()
-        ->setHour(7)
-        ->setMinutes(30)
-        ->setSecond(0);
-      $expectedTimeOut = Carbon::now()
-        ->setHour(16)
-        ->setMinutes(30)
-        ->setSecond(0);
-
-      $expectedTimeInMinutes = (((int)$expectedTimeIn->format('H'))*60*60
-        + ((int)$expectedTimeIn->format('i')*60)
-        + (int)$expectedTimeIn->format('s')) / 60;
-
-      $expectedTimeOutMinutes = (((int)$expectedTimeOut->format('H'))*60*60
-        + ((int)$expectedTimeOut->format('i')*60)
-        + (int)$expectedTimeOut->format('s')) / 60;
-
       while($startDate <= $endDate) {
         $date = $startDate->format('Y-m-d');
+
+        // fetch common time shift by date
+        $commonTimeShiftModel = resolve(CommonTimeShift::class);
+        $commonTimeShift = $commonTimeShiftModel
+          ->whereNotNull('effectivity_date')
+          ->whereDate('effectivity_date', '<=', $date)
+          ->orderBy('effectivity_date', 'desc')
+          ->get()
+          ->first();
+
+        if (!$commonTimeShift) {
+          $commonTimeShiftModel = resolve(CommonTimeShift::class);
+          $commonTimeShift = $commonTimeShiftModel
+            ->whereNull('effectivity_date')
+            ->get()
+            ->first();
+        }
+
+        // set expected time-in/out
+        $expectedTimeIn = Carbon::createFromFormat(
+          'Y-m-d H:i:s', 
+          ($commonTimeShift->effectivity_date ?: $date) . ' ' . $commonTimeShift->expected_time_in
+        );
+        $expectedTimeOut = Carbon::createFromFormat(
+          'Y-m-d H:i:s', 
+          ($commonTimeShift->effectivity_date ?: $date) . ' ' . $commonTimeShift->expected_time_out
+        );
+
+        $expectedTimeInMinutes = (((int)$expectedTimeIn->format('H'))*60*60
+          + ((int)$expectedTimeIn->format('i')*60)
+          + (int)$expectedTimeIn->format('s')) / 60;
+        $expectedTimeOutMinutes = (((int)$expectedTimeOut->format('H'))*60*60
+          + ((int)$expectedTimeOut->format('i')*60)
+          + (int)$expectedTimeOut->format('s')) / 60;
+        
         foreach($users as $user) {
 
           $logs = array_filter($attendanceLogs, function($log) use ($date, $user) {

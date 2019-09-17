@@ -33,7 +33,7 @@
         <input type="text" class="form-control" id="expectedTimeIn" name="expected_time_in" maxlength="25">
       </div>
       <div class="form-group">
-        <label for="expectedTimeOut">Expected Time-in:</label>
+        <label for="expectedTimeOut">Expected Time-out:</label>
         <input type="text" class="form-control" id="expectedTimeOut" name="expected_time_out" maxlength="25">
       </div>
       <button type="button" class="btn btn-primary btn-block" id="registerBtn" name="button">Register</button>
