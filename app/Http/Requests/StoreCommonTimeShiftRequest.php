@@ -24,9 +24,9 @@ class StoreCommonTimeShiftRequest extends FormRequest
     public function rules()
     {
         return [
-            'effectivity_date' => 'required|date|unique:common_time_shifts,effectivity_date',
-            'expected_time_in' => 'required|date_format:H:i',
-            'expected_time_out' => 'required|date_format:H:i'
+            'effectivity_date' => 'required|date|unique:common_time_shifts,effectivity_date|after:now',
+            'expected_time_in' => 'required|date_format:H:i|before:expected_time_out',
+            'expected_time_out' => 'required|date_format:H:i|after:expected_time_in'
         ];
     }
 }

@@ -37,17 +37,17 @@
         <div class="card-body">
           <div class="form-group">
             <label for="effectivityDate">Effectivity Date:</label>
-            <input type="text" class="form-control" id="effectivityDate" name="effectivity_date" maxlength="10">
+            <input type="date" class="form-control" id="effectivityDate" name="effectivity_date" maxlength="10">
             <div class="invalid-feedback"></div>
           </div>
           <div class="form-group">
             <label for="expectedTimeIn">Expected Time-in:</label>
-            <input type="text" class="form-control" id="expectedTimeIn" name="expected_time_in" maxlength="25">
+            <input type="time" class="form-control" id="expectedTimeIn" name="expected_time_in" maxlength="25">
             <div class="invalid-feedback"></div>
           </div>
           <div class="form-group">
             <label for="expectedTimeOut">Expected Time-out:</label>
-            <input type="text" class="form-control" id="expectedTimeOut" name="expected_time_out" maxlength="25">
+            <input type="time" class="form-control" id="expectedTimeOut" name="expected_time_out" maxlength="25">
             <div class="invalid-feedback"></div>
           </div>
           <button type="button" class="btn btn-primary btn-block" id="registerBtn" name="button">Register</button>
