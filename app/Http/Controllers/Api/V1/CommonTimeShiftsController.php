@@ -66,6 +66,6 @@ class CommonTimeShiftsController extends Controller
      */
     public function destroy($id)
     {
-        //
+        return CommonTimeShift::where('id', '=', $id)->delete();
     }
 }
