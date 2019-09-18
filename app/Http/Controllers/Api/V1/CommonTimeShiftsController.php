@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\V1;
 
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
+use App\Models\AttendanceLog;
 use App\Models\CommonTimeShift;
 use App\Http\Requests\StoreCommonTimeShiftRequest;
 
@@ -18,6 +19,12 @@ class CommonTimeShiftsController extends Controller
     {
         $commonTimeShifts = CommonTimeShift::orderBy('effectivity_date', 'desc')
 	        ->get();
+	
+		foreach($commonTimeShifts as &$timeShift) {
+			$count = AttendanceLog::whereDate('biometric_timestamp', '<=', $timeShift->effectivity_date . ' 00:00:00')
+				->get()->count();
+		    $timeShift->is_locked = $count > 0;
+		}
 	
 		return response()->json(['data' => $commonTimeShifts]);
     }

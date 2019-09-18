@@ -73,7 +73,7 @@ $(function() {
         { 
 			'data': null,
 			'render': function (data, type, row) {
-				var deleteBtn = (row.effectivity_date) 
+				var deleteBtn = (row.effectivity_date && !row.is_locked) 
 					? '<a href="#" class="delete btn btn-warning" data-toggle="modal" data-target="#deleteModal" data-common-time-shift-id="' + row.id + '" data-effectivity-date="' + row.effectivity_date + '"><i class="fa fa-trash"></i></a>'
 					: null;
 				
