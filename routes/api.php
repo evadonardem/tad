@@ -23,7 +23,6 @@ $api->version('v1', function ($api) {
     $api->get('info', 'App\Http\Controllers\Api\V1\BiometricInfoController@index');
     $api->resource('users', 'App\Http\Controllers\Api\V1\BiometricUsersController');
     $api->get('attendance-logs', 'App\Http\Controllers\Api\V1\BiometricAttendanceController@index');
-    $api->get('flush', 'App\Http\Controllers\Api\V1\BiometricUsersController@flush');
   });
 
   $api->group(['prefix' => 'reports'], function($api) {

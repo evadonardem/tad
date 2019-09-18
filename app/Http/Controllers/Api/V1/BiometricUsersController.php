@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Api\V1;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use App\ZKLib\ZKLibrary;
+use App\User;
+use App\Models\AttendanceLog;
 
 class BiometricUsersController extends Controller
 {
@@ -23,7 +25,20 @@ class BiometricUsersController extends Controller
      */
     public function index()
     {
-        $users = $this->zk->getUser();
+        $biometricUsers = $this->zk->getUser();
+
+        $usersCount = User::all()->count();
+        if ($usersCount == 0) {
+            foreach ($biometricUsers as $user) {
+                User::create([
+                    'biometric_id' => $user['biometric_id'],
+                    'name' => $user['name'], 
+                    'password' => !empty($user['password']) ? Hash::make($user['password']) : ''
+                ]);
+            }
+        }
+
+        $users = User::orderBy('name', 'asc')->get();
 
         return response()->json(['data' => $users]);
     }
@@ -47,6 +62,12 @@ class BiometricUsersController extends Controller
         }
 
         $this->zk->setUser($newRecordId, $attributes['biometric_id'], $attributes['name'], '', 0);
+
+        User::create([
+            'biometric_id' => $attributes['biometric_id'],
+            'name' => $attributes['name'],
+            'password' => ''
+        ]);
     }
 
     /**
@@ -80,21 +101,24 @@ class BiometricUsersController extends Controller
      */
     public function destroy($id)
     {
-        //
-    }
+        $deviceUsers = $this->zk->getUser();
+        $storedUser = User::findOrFail($id);
 
-    /**
-     * Flush biometrics.
-     *
-     * @return bool
-     */
-    public function flush()
-    {
-        $this->zk->clearUser();
+        $filteredDeviceUsers = array_filter($deviceUsers, function($deviceUser) use ($storedUser) {
+            return $deviceUser['biometric_id'] == $storedUser->biometric_id;
+        });
 
-        return response()->json([
-          'message' => empty($this->zk->getUser()) ?
-            'Successfully flushed biometrics.' : 'Failed to flush biometrics.'
-        ]);
+        $deviceUser = (count($filteredDeviceUsers) > 0) ? array_pop($filteredDeviceUsers) : null;
+
+        if ($deviceUser) {
+            $this->zk->deleteUser($deviceUser['record_id']);
+            $storedUser->delete();
+            AttendanceLog::where('biometric_id', '=', $storedUser->biometric_id)->delete();            
+
+            return $storedUser;
+        }
+        
+
+        return null;
     }
 }

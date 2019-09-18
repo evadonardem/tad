@@ -16,6 +16,7 @@
             <tr>
               <th scope="col">Biometric ID</th>
               <th scope="col">Name</th>
+              <th></th>
             </tr>
           </thead>
           <tbody>
@@ -53,20 +54,50 @@
       'columns': [
         { 'data': 'biometric_id' },
         { 'data': 'name' },
+        { 
+          'data': null,
+          'render': function (data, type, row) {
+            var deleteBtn = '<a href="#" class="delete btn btn-warning" data-toggle="modal" data-target="#deleteModal" data-user-id="' + row.id + '" data-biometric-id="' + row.biometric_id + '" data-name="' + row.name + '"><i class="fa fa-trash"></i></a>';
+            
+            return deleteBtn;
+          }
+        }
       ]
     });
 
-    var newUserFrm = $('#newUserFrm');
+    $(document).on('click', '.delete', function (e) {
+      e.preventDefault();
+      var deleteModal = $('#deleteModal');
+      var userId = $(this).data('user-id');
+      var biometricId = $(this).data('biometric-id');
+      var name = $(this).data('name');
+      deleteModal.find('.modal-title').text('Delete Biometric User');
+      deleteModal.find('.modal-body').text('Are you sure to delete biometric user ' + biometricId + ' ' + name + '?');
+      deleteModal.find('.modal-footer .btn.btn-primary').off().click(function () {
+        var url = "{{url('api/biometric/users')}}/" + userId;
+        $.ajax({
+            url: url,
+            method: 'DELETE',
+            success: function(response) {
+              newFrm[0].reset();
+              dataTable.ajax.reload();
+              deleteModal.modal('hide');
+            }
+         });
+      });
+    });
+
+    var newFrm = $('#newUserFrm');
     var registerBtn = $('#registerBtn');
     registerBtn.click(function() {
       var url = "{{url('api/biometric/users')}}"
-      var data = newUserFrm.serialize();
+      var data = newFrm.serialize();
       $.ajax({
         url: url,
         method: 'POST',
         data: data,
         success: function(response) {
-          newUserFrm[0].reset();
+          newFrm[0].reset();
           dataTable.ajax.reload();
         }
       });
