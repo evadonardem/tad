@@ -7,55 +7,68 @@
 
 <hr class="my-4">
 
-<form id="searchFiltersFrm">
-  <div class="row">
-    <div class="col-4">
-      <div class="form-group">
-        <label for="">Biometric ID</label>
-        <input type="text" class="form-control" name="biometric_id">
+<div class="row">
+  <div class="col">
+    <form id="searchFiltersFrm">
+      <div class="card">
+        <h5 class="card-header">Search Filters</h5>
+        <div class="card-body">
+          <div class="row">
+            <div class="col">
+              <div class="form-group">
+                <label>Biometric ID</label>
+                <input type="text" class="form-control" name="biometric_id">
+              </div>
+            </div>
+            <div class="col">
+              <div class="form-group">
+                <label>Name</label>
+                <input type="text" class="form-control" name="name">
+              </div>
+            </div>
+            <div class="col">
+              <div class="form-group">
+                <label>Start Date</label>
+                <input type="date" class="form-control" name="start_date">
+              </div>
+            </div>
+            <div class="col">
+              <div class="form-group">
+                <label>End Date</label>
+                <input type="date" class="form-control" name="end_date">
+              </div>
+            </div>  
+          </div>
+        </div>
+        <div class="card-footer">
+          <div class="pull-right">
+            <button type="submit" class="btn btn-primary">Search</button>
+          </div>
+        </div>
       </div>
-    </div>
-    <div class="col-4">
-      <div class="form-group">
-        <label for="">Name</label>
-        <input type="text" class="form-control" name="name">
-      </div>
-    </div>
-    <div class="col">
-      <div class="form-group">
-        <label for="">Year</label>
-        <input type="text" class="form-control" name="year" value="{{ $currentYear }}">
-      </div>
-    </div>
-    <div class="col">
-      <div class="form-group">
-        <label for="">Month</label>
-        <select class="form-control" name="month">
-          @foreach($months as $key => $value)
-          <option value="{{ $key }}" {{ $key == $currentMonth ? 'selected' : null }}>{{ $value }}</option>
-          @endforeach
-        </select>
-      </div>
-    </div>
+    </form>
   </div>
-  <button type="button" class="btn btn-primary" id="searchBtn">Search</button>
-</form>
+</div>
 
 <hr class="my-4">
 
 <div class="row">
   <div class="col">
-    <table class="table table-striped">
-      <thead>
-        <tr>
-          <th scope="col">Biometric ID</th>
-          <th scope="col">Name</th>
-          <th scope="col">Date Time</th>
-        </tr>
-      </thead>
-      <tbody>
-      </tbody>
-    </table>
+    <div class="card">
+      <div class="card-body">
+        <table class="table table-striped">
+          <thead>
+            <tr>
+              <th scope="col">Biometric ID</th>
+              <th scope="col">Name</th>
+              <th scope="col">Date Time</th>
+            </tr>
+          </thead>
+          <tbody>
+          </tbody>
+        </table>
+      </div>
+    </div>
   </div>
 </div>
 @endsection
@@ -64,10 +77,11 @@
 <script type="text/javascript">
   $(function() {
     var dataTable = null;
-    var searchBtn = $('#searchBtn');
+    var searchFiltersForm = $('#searchFiltersFrm');
 
-    searchBtn.click(function() {
-      var data = $('#searchFiltersFrm').serialize();
+    searchFiltersForm.submit(function(e) {
+      e.preventDefault();
+      var data = $(this).serialize();
       if(dataTable) {
         dataTable.ajax.url("{{url('api/biometric/attendance-logs')}}?"+data);
         dataTable.ajax.reload();
@@ -88,7 +102,6 @@
       }
     });
 
-    searchBtn.trigger('click');
   });
 </script>
 @endsection

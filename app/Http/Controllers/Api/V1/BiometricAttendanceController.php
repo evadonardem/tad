@@ -57,14 +57,14 @@ class BiometricAttendanceController extends Controller
 
       $biometricId = $request->input('biometric_id');
       $name = $request->input('name');
-      $year = $request->input('year') ?: Carbon::now()->format('Y');
-      $month = $request->input('month');
-
-      $startDate = Carbon::createFromDate($year, $month)->startOfMonth();
-      $endDate = Carbon::createFromDate($year, $month)->endOfMonth();
-
-      $logsQry = AttendanceLog::where('biometric_timestamp', '>=', $startDate->format('Y-m-d H:i:s'))
-        ->where('biometric_timestamp', '<=', $endDate->format('Y-m-d H:i:s'));
+      $startDate = Carbon::createFromFormat('Y-m-d', $request->input('start_date'))
+        ->setTime(0, 0, 0)
+        ->format('Y-m-d H:i:s');
+      $endDate = Carbon::createFromFormat('Y-m-d', $request->input('end_date'))
+        ->setTime(23, 59, 59)
+        ->format('Y-m-d H:i:s');
+      
+      $logsQry = AttendanceLog::whereBetween('biometric_timestamp', [$startDate, $endDate]);
 
       if($biometricId) {
         $logsQry->where('biometric_id', '=', $biometricId);
