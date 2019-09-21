@@ -26,13 +26,7 @@ class BiometricUsersController extends Controller
     public function index()
     {
         if ($this->zk) {
-            $this->zk->disableDevice();
-
             $biometricUsers = $this->zk->getUser();
-
-            $this->zk->enableDevice();
-            $this->zk->disconnect();
-
             $usersCount = User::all()->count();
             if ($usersCount == 0) {
                 foreach ($biometricUsers as $user) {
@@ -59,8 +53,6 @@ class BiometricUsersController extends Controller
     public function store(Request $request)
     {
         if ($this->zk) {
-            $this->zk->disableDevice();
-
             $attributes = $request->only(['biometric_id', 'name']);
             $users = $this->zk->getUser();
             $newRecordId = 1;
@@ -71,9 +63,6 @@ class BiometricUsersController extends Controller
             }
 
             $this->zk->setUser($newRecordId, $attributes['biometric_id'], $attributes['name'], '', 0);
-
-            $this->zk->enableDevice();
-            $this->zk->disconnect();
 
             $user = User::create([
                 'biometric_id' => $attributes['biometric_id'],
@@ -119,8 +108,6 @@ class BiometricUsersController extends Controller
     public function destroy($id)
     {
         if ($this->zk) {
-            $this->zk->disableDevice();
-
             $deviceUsers = $this->zk->getUser();
             $storedUser = User::findOrFail($id);
 
@@ -130,13 +117,8 @@ class BiometricUsersController extends Controller
 
             $deviceUser = (count($filteredDeviceUsers) > 0) ? array_pop($filteredDeviceUsers) : null;
 
-            $this->zk->enableDevice();
-
             if ($deviceUser) {
                 $this->zk->deleteUser($deviceUser['record_id']);
-
-                $this->zk->disconnect();
-
                 $storedUser->delete();
                 AttendanceLog::where('biometric_id', '=', $storedUser->biometric_id)->delete();
 

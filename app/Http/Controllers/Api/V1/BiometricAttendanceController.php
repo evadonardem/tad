@@ -29,8 +29,6 @@ class BiometricAttendanceController extends Controller
     public function index(Request $request)
     {
         if ($this->zk) {
-            $this->zk->disableDevice();
-
             $users = $this->api->get('biometric/users');
             $users = $users['data'];
             $keys = [];
@@ -51,8 +49,6 @@ class BiometricAttendanceController extends Controller
             }
 
             $this->zk->clearAttendance();
-            $this->zk->enableDevice();
-            $this->zk->disconnect();
         }
 
         $biometricId = $request->input('biometric_id');

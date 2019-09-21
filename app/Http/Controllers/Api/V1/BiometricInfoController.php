@@ -25,15 +25,10 @@ class BiometricInfoController extends Controller
     {
         $this->zk->testVoice();
 
-        $this->zk->disableDevice();
-
         $deviceName = $this->zk->getDeviceName();
         $deviceIP = $this->zk->ip;
         $devicePort = $this->zk->port;
-
-        $this->zk->enableDevice();
-        $this->zk->disconnect();
-
+        
         return response()->json(['data' => [
           'device_name' => $deviceName,
           'device_ip' => $deviceIP,
