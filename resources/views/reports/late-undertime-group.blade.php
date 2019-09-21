@@ -7,36 +7,36 @@
 
 <hr class="my-4">
 
-<form id="searchFiltersFrm">
-  <input type="hidden" name="type" value="group">
-  <div class="row">
-    <div class="col">
-      <div class="form-group filters">
-        <label for="">Year</label>
-        <input type="text" class="form-control" name="year" value="{{ $currentYear }}">
+<div class="row">
+  <div class="col">
+    <form id="searchFiltersFrm">
+      <div class="card">
+        <h5 class="card-header">Search Filters</h5>
+        <div class="card-body">
+          <div class="row">
+            <div class="col">
+              <div class="form-group">
+                <label>Start Date</label>
+                <input type="date" class="form-control" name="start_date">
+              </div>
+            </div>
+            <div class="col">
+              <div class="form-group">
+                <label>End Date</label>
+                <input type="date" class="form-control" name="end_date">
+              </div>
+            </div>  
+          </div>
+        </div>
+        <div class="card-footer">
+          <div class="pull-right">
+            <button type="submit" class="btn btn-primary">Search</button>
+          </div>
+        </div>
       </div>
-    </div>
-    <div class="col">
-      <div class="form-group">
-        <label for="">Month</label>
-        <select class="form-control filters" name="month">
-          @foreach($months as $key => $value)
-          <option value="{{ $key }}" {{ $key == $currentMonth ? 'selected' : null }}>{{ $value }}</option>
-          @endforeach
-        </select>
-      </div>
-    </div>
-    <div class="col">
-      <div class="form-group">
-        <label for="">Period</label>
-        <select class="form-control filters" name="period">
-          <option value="1">1st Half</option>
-          <option value="2">2nd Half</option>
-        </select>
-      </div>
-    </div>
+    </form>
   </div>
-</form>
+</div>
 
 <hr class="my-4">
 
@@ -84,15 +84,12 @@
 <script type="text/javascript">
   $(function() {
     var dataTable = null;
-    var filters = $('.filters');
+    var searchFiltersForm = $('#searchFiltersFrm');
 
-    $('#searchFiltersFrm').submit(function(e) {
+    searchFiltersForm.submit(function(e) {
       e.preventDefault();
-    });
-
-    filters.on('change', function() {
       var exportTitle = 'ReportLateUndertimeByGroup';
-      var data = $('#searchFiltersFrm').serialize();
+      var data = $(this).serialize();
 
       $('div.search-result-loading', 'body').remove();
       $('div.search-result').hide().before('<div class="search-result-loading"><h4><i class="fa fa-spin fa-spinner"></i> Loading...</h4></div>');
@@ -161,7 +158,6 @@
       }
     });
 
-    filters.trigger('change');
   });
 </script>
 @endsection

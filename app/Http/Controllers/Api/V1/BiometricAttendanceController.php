@@ -63,7 +63,7 @@ class BiometricAttendanceController extends Controller
       $endDate = Carbon::createFromFormat('Y-m-d', $request->input('end_date'))
         ->setTime(23, 59, 59)
         ->format('Y-m-d H:i:s');
-      
+      // 
       $logsQry = AttendanceLog::whereBetween('biometric_timestamp', [$startDate, $endDate]);
 
       if($biometricId) {

@@ -25,9 +25,13 @@ class ReportsController extends Controller
   {
     if($this->zk) {
       $type = $request->input('type');
-      $year = $request->input('year') ?: Carbon::now()->format('Y');
-      $month = $request->input('month');
-      $period = $request->input('period') ?: 1;
+
+      $startDate = Carbon::createFromFormat('Y-m-d', $request->input('start_date'))
+        ->setTime(0, 0, 0);
+      
+      $endDate = Carbon::createFromFormat('Y-m-d', $request->input('end_date'))
+        ->setTime(23, 59, 59);
+      
       $biometricId = $type == 'individual' ?
         ($request->input('biometric_id') ? $request->input('biometric_id') : -1)
         : null;
@@ -37,7 +41,7 @@ class ReportsController extends Controller
       $users = $this->api->get('biometric/users');
       $users = $users['data'];
 
-      $queryParams = 'year=' . $year . '&month=' . $month;
+      $queryParams = 'start_date=' . $startDate->format('Y-m-d') . '&end_date=' . $endDate->format('Y-m-d');
       $queryParams .= ($type ? '&biometric_id=' . $biometricId : '');
 
       $attendanceLogs = $this->api->get('biometric/attendance-logs?' . $queryParams);
@@ -47,15 +51,6 @@ class ReportsController extends Controller
       $this->zk->disconnect();
 
       $report = [];
-
-      $startDate = Carbon::createFromDate($year, $month);
-      if($period == 1) {
-        $startDate = $startDate->startOfMonth();
-        $endDate = (clone $startDate)->addDay(14);
-      } else if ($period == 2) {
-        $startDate = $startDate->startOfMonth()->addDay(15);
-        $endDate = (clone $startDate)->endOfMonth();
-      }
 
       while($startDate <= $endDate) {
         $date = $startDate->format('Y-m-d');
