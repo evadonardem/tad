@@ -7,46 +7,47 @@
 
 <hr class="my-4">
 
-<form id="searchFiltersFrm">
-  <input type="hidden" name="type" value="individual">
-  <div class="row">
-    <div class="col">
-      <div class="form-group">
-        <label for="">Biometric User</label>
-        <select class="form-control" name="biometric_id">
-          <option></option>
-        </select>
+<div class="row">
+  <div class="col">
+    <form id="searchFiltersFrm">
+      <input type="hidden" name="type" value="individual">
+      <div class="card">
+        <h5 class="card-header">Search Filters</h5>
+        <div class="card-body">
+          <div class="row">
+            <div class="col">
+              <div class="form-group">
+                <label for="">Biometric User</label>
+                <select class="form-control" name="biometric_id">
+                  <option></option>
+                </select>
+              </div>
+            </div>
+          </div>
+          <div class="row">
+            <div class="col">
+              <div class="form-group">
+                <label>Start Date</label>
+                <input type="date" class="form-control" name="start_date">
+              </div>
+            </div>
+            <div class="col">
+              <div class="form-group">
+                <label>End Date</label>
+                <input type="date" class="form-control" name="end_date">
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="card-footer">
+          <div class="pull-right">
+            <button type="submit" class="btn btn-primary">Search</button>
+          </div>
+        </div>
       </div>
-    </div>
+    </form>
   </div>
-  <div class="row">
-    <div class="col">
-      <div class="form-group">
-        <label for="">Year</label>
-        <input type="text" class="form-control filters" name="year" value="{{ $currentYear }}">
-      </div>
-    </div>
-    <div class="col">
-      <div class="form-group">
-        <label for="">Month</label>
-        <select class="form-control filters" name="month">
-          @foreach($months as $key => $value)
-          <option value="{{ $key }}" {{ $key == $currentMonth ? 'selected' : null }}>{{ $value }}</option>
-          @endforeach
-        </select>
-      </div>
-    </div>
-    <div class="col">
-      <div class="form-group">
-        <label for="">Period</label>
-        <select class="form-control filters" name="period">
-          <option value="1">1st Half</option>
-          <option value="2">2nd Half</option>
-        </select>
-      </div>
-    </div>
-  </div>
-</form>
+</div>
 
 <hr class="my-4">
 
@@ -91,12 +92,7 @@
   $(function() {
     var biometricUserSelect = $('select[name="biometric_id"]');
     var dataTable = null;
-    var searchBtn = $('#searchBtn');
-    var filters = $('.filters');
-
-    $('#searchFiltersFrm').submit(function(e) {
-      e.preventDefault();
-    });
+    var searchFiltersForm = $('#searchFiltersFrm');
 
     $.get("{{url('api/biometric/users')}}", function(response) {
       var data = response.data;
@@ -115,10 +111,12 @@
         placeholder: 'Select biometric user'
       });
 
-      biometricUserSelect.on('change.select2', function() {
-        var biometricUser = $(this).select2('data')[0].text;
+      searchFiltersForm.submit(function(e) {
+        e.preventDefault();
+
+        var biometricUser = biometricUserSelect.select2('data')[0].text;
         var exportTitle = 'ReportLateUndertimeIndividual';
-        var data = $('#searchFiltersFrm').serialize();
+        var data = $(this).serialize();
 
         $('div.search-result-loading', 'body').remove();
         $('div.search-result').hide().before('<div class="search-result-loading"><h4><i class="fa fa-spin fa-spinner"></i> Loading...</h4></div>');
@@ -185,10 +183,7 @@
             }
           });
         }
-      });
 
-      filters.on('change', function() {
-        biometricUserSelect.trigger('change.select2');
       });
     });
   });

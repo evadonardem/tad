@@ -10,6 +10,7 @@
 <div class="row">
   <div class="col">
     <form id="searchFiltersFrm">
+      <input type="hidden" name="type" value="group">
       <div class="card">
         <h5 class="card-header">Search Filters</h5>
         <div class="card-body">
@@ -25,7 +26,7 @@
                 <label>End Date</label>
                 <input type="date" class="form-control" name="end_date">
               </div>
-            </div>  
+            </div>
           </div>
         </div>
         <div class="card-footer">
