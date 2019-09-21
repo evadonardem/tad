@@ -4,7 +4,6 @@ namespace App\Http\Controllers\Api\V1;
 
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
-use App\ZKLib\ZKLibrary;
 use Dingo\Api\Routing\Helpers;
 use Carbon\Carbon;
 use App\Models\CommonTimeShift;
@@ -12,14 +11,6 @@ use App\Models\CommonTimeShift;
 class ReportsController extends Controller
 {
     use Helpers;
-
-    private $zk = null;
-
-    public function __construct()
-    {
-        $this->zk = new ZKLibrary(env('DEVICE_IP'), env('DEVICE_PORT'));
-        $this->zk->connect();
-    }
 
     public function lateUndertime(Request $request)
     {
