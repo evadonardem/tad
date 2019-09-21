@@ -18,15 +18,16 @@ class CommonTimeShiftsController extends Controller
     public function index()
     {
         $commonTimeShifts = CommonTimeShift::orderBy('effectivity_date', 'desc')
-	        ->get();
-	
-		foreach($commonTimeShifts as &$timeShift) {
-			$count = AttendanceLog::whereDate('biometric_timestamp', '<=', $timeShift->effectivity_date . ' 00:00:00')
-				->get()->count();
-		    $timeShift->is_locked = $count > 0;
-		}
-	
-		return response()->json(['data' => $commonTimeShifts]);
+            ->get();
+
+        foreach ($commonTimeShifts as &$timeShift) {
+            $count = AttendanceLog::whereDate('biometric_timestamp', '<=', $timeShift->effectivity_date . ' 00:00:00')
+                ->get()
+                ->count();
+            $timeShift->is_locked = $count > 0;
+        }
+
+        return response()->json(['data' => $commonTimeShifts]);
     }
 
     /**
@@ -38,7 +39,7 @@ class CommonTimeShiftsController extends Controller
     public function store(StoreCommonTimeShiftRequest $request)
     {
         $attributes = $request->only(['effectivity_date', 'expected_time_in', 'expected_time_out']);
-        
+
         return CommonTimeShift::create($attributes);
     }
 

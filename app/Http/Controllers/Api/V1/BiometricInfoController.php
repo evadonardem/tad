@@ -12,8 +12,8 @@ class BiometricInfoController extends Controller
 
     public function __construct()
     {
-      $this->zk = new ZKLibrary(env('DEVICE_IP'), env('DEVICE_PORT'));
-      $this->zk->connect();
+        $this->zk = new ZKLibrary(env('DEVICE_IP'), env('DEVICE_PORT'));
+        $this->zk->connect();
     }
 
     /**
@@ -23,18 +23,18 @@ class BiometricInfoController extends Controller
      */
     public function index()
     {
-      $this->zk->testVoice();
+        $this->zk->testVoice();
 
-      $this->zk->disableDevice();
+        $this->zk->disableDevice();
 
-      $deviceName = $this->zk->getDeviceName();
-      $deviceIP = $this->zk->ip;
-      $devicePort = $this->zk->port;
+        $deviceName = $this->zk->getDeviceName();
+        $deviceIP = $this->zk->ip;
+        $devicePort = $this->zk->port;
 
-      $this->zk->enableDevice();
-      $this->zk->disconnect();
+        $this->zk->enableDevice();
+        $this->zk->disconnect();
 
-      return response()->json(['data' => [
+        return response()->json(['data' => [
           'device_name' => $deviceName,
           'device_ip' => $deviceIP,
           'device_port' => $devicePort

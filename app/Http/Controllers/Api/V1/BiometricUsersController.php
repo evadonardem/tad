@@ -14,8 +14,8 @@ class BiometricUsersController extends Controller
 
     public function __construct()
     {
-      $this->zk = new ZKLibrary(env('DEVICE_IP'), env('DEVICE_PORT'));
-      $this->zk->connect();
+        $this->zk = new ZKLibrary(env('DEVICE_IP'), env('DEVICE_PORT'));
+        $this->zk->connect();
     }
 
     /**
@@ -25,16 +25,23 @@ class BiometricUsersController extends Controller
      */
     public function index()
     {
-        $biometricUsers = $this->zk->getUser();
+        if ($this->zk) {
+            $this->zk->disableDevice();
 
-        $usersCount = User::all()->count();
-        if ($usersCount == 0) {
-            foreach ($biometricUsers as $user) {
-                User::create([
-                    'biometric_id' => $user['biometric_id'],
-                    'name' => $user['name'], 
-                    'password' => !empty($user['password']) ? Hash::make($user['password']) : ''
-                ]);
+            $biometricUsers = $this->zk->getUser();
+
+            $this->zk->enableDevice();
+            $this->zk->disconnect();
+
+            $usersCount = User::all()->count();
+            if ($usersCount == 0) {
+                foreach ($biometricUsers as $user) {
+                    User::create([
+                        'biometric_id' => $user['biometric_id'],
+                        'name' => $user['name'],
+                        'password' => !empty($user['password']) ? Hash::make($user['password']) : ''
+                    ]);
+                }
             }
         }
 
@@ -51,23 +58,33 @@ class BiometricUsersController extends Controller
      */
     public function store(Request $request)
     {
+        if ($this->zk) {
+            $this->zk->disableDevice();
 
-        $attributes = $request->only(['biometric_id', 'name']);
-        $users = $this->zk->getUser();
-        $newRecordId = 1;
+            $attributes = $request->only(['biometric_id', 'name']);
+            $users = $this->zk->getUser();
+            $newRecordId = 1;
 
-        if(!empty($users)) {
-          $recordIds = array_column($users, 'record_id');
-          $newRecordId = ((int)max($recordIds)) + 1;
+            if (!empty($users)) {
+                $recordIds = array_column($users, 'record_id');
+                $newRecordId = ((int)max($recordIds)) + 1;
+            }
+
+            $this->zk->setUser($newRecordId, $attributes['biometric_id'], $attributes['name'], '', 0);
+
+            $this->zk->enableDevice();
+            $this->zk->disconnect();
+
+            $user = User::create([
+                'biometric_id' => $attributes['biometric_id'],
+                'name' => $attributes['name'],
+                'password' => ''
+            ]);
+
+            return ($user) ? response()->noContent() : response()->json('Forbidden', 403);
         }
 
-        $this->zk->setUser($newRecordId, $attributes['biometric_id'], $attributes['name'], '', 0);
-
-        User::create([
-            'biometric_id' => $attributes['biometric_id'],
-            'name' => $attributes['name'],
-            'password' => ''
-        ]);
+        return response()->json('Forbidden', 403);
     }
 
     /**
@@ -101,24 +118,32 @@ class BiometricUsersController extends Controller
      */
     public function destroy($id)
     {
-        $deviceUsers = $this->zk->getUser();
-        $storedUser = User::findOrFail($id);
+        if ($this->zk) {
+            $this->zk->disableDevice();
 
-        $filteredDeviceUsers = array_filter($deviceUsers, function($deviceUser) use ($storedUser) {
-            return $deviceUser['biometric_id'] == $storedUser->biometric_id;
-        });
+            $deviceUsers = $this->zk->getUser();
+            $storedUser = User::findOrFail($id);
 
-        $deviceUser = (count($filteredDeviceUsers) > 0) ? array_pop($filteredDeviceUsers) : null;
+            $filteredDeviceUsers = array_filter($deviceUsers, function ($deviceUser) use ($storedUser) {
+                return $deviceUser['biometric_id'] == $storedUser->biometric_id;
+            });
 
-        if ($deviceUser) {
-            $this->zk->deleteUser($deviceUser['record_id']);
-            $storedUser->delete();
-            AttendanceLog::where('biometric_id', '=', $storedUser->biometric_id)->delete();            
+            $deviceUser = (count($filteredDeviceUsers) > 0) ? array_pop($filteredDeviceUsers) : null;
 
-            return $storedUser;
+            $this->zk->enableDevice();
+
+            if ($deviceUser) {
+                $this->zk->deleteUser($deviceUser['record_id']);
+
+                $this->zk->disconnect();
+
+                $storedUser->delete();
+                AttendanceLog::where('biometric_id', '=', $storedUser->biometric_id)->delete();
+
+                return $storedUser;
+            }
         }
-        
 
-        return null;
+        return response()->json('Forbidden', 403);
     }
 }
