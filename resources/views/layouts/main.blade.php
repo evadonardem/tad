@@ -9,6 +9,24 @@
         <link rel="stylesheet" href="https://cdn.datatables.net/1.10.18/css/dataTables.bootstrap4.min.css">
         <link rel="stylesheet" href="https://cdn.datatables.net/buttons/1.5.6/css/buttons.bootstrap4.min.css">
         <link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.10/css/select2.min.css" rel="stylesheet" />
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-cookie/1.4.1/jquery.cookie.min.js"></script>
+        <script type="text/javascript">
+          $(function() {
+            var token = $.cookie('token');
+            $.post('{{ url("api/me") }}?token=' + token, { }, function (response) {
+              $('.signed-in-user').text('Hi! ' + response.name);
+            }).fail(function () {
+              location.replace('{{ url("login") }}');
+            });
+
+            $('.sign-out').click(function () {
+              $.post('{{ url("api/logout") }}?token=' + token, { }, function () {
+                location.replace('{{ url("login") }}');
+              });
+            });
+          });
+        </script>
     </head>
     <body>
 
@@ -34,13 +52,21 @@
             <li class="nav-item {{ Request::is('settings') ? 'active' : null }}">
               <a class="nav-link" href="{{ url('settings') }}"><i class="fa fa-cogs"></i> Settings</a>
             </li>
+            <li class="nav-item dropdown">
+              <a class="nav-link dropdown-toggle" href="#" id="userDropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                <span class="signed-in-user"></span>
+              </a>
+              <div class="dropdown-menu" aria-labelledby="userDropdownMenuLink">
+                <a class="dropdown-item sign-out" href="#">Sign-out</a>
+              </div>
+            </li>
           </ul>
         </div>
       </nav>
 
       <div class="container my-4">
         @yield('content')
-        
+
 		<!-- Delete Modal -->
 		<div class="modal fade" id="deleteModal" tabindex="-1" role="dialog" aria-labelledby="deleteModalTitle" aria-hidden="true">
 		  <div class="modal-dialog modal-dialog-centered" role="document">
@@ -62,7 +88,6 @@
 		</div>
       </div>
 
-      <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
       <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
       <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
       <script src="https://cdn.datatables.net/1.10.18/js/jquery.dataTables.min.js"></script>
@@ -72,7 +97,7 @@
       <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.1.3/jszip.min.js"></script>
       <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/pdfmake.min.js"></script>
       <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/vfs_fonts.js"></script>
-      <script src="https://cdn.datatables.net/buttons/1.5.6/js/buttons.html5.min.js"></script>        
+      <script src="https://cdn.datatables.net/buttons/1.5.6/js/buttons.html5.min.js"></script>
       <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.10/js/select2.min.js"></script>
       @yield('custom-scripts')
     </body>

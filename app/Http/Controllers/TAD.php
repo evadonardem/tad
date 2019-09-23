@@ -7,6 +7,11 @@ use Carbon\Carbon;
 
 class TAD extends Controller
 {
+    public function login()
+    {
+        return view('layouts.login');
+    }
+
     public function dashboard()
     {
       return view('dashboard.index');
@@ -95,15 +100,15 @@ class TAD extends Controller
       $now = Carbon::now();
       $currentMonth = $now->format('n');
       $currentYear = $now->format('Y');
-		
+
       return view('reports.late-undertime-individual', [
 		'months' => $months,
 		'currentMonth' => $currentMonth,
 		'currentYear' => $currentYear
 	  ]);
     }
-    
-    public function settings() 
+
+    public function settings()
     {
     	return view('settings.index');
     }

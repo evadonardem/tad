@@ -17,17 +17,17 @@ $api = app('Dingo\Api\Routing\Router');
 
 $api->version('v1', function ($api) {
     $api->get('/', function () {
-        $user = App\User::find(1);
-        $user->password = Hash::make('123456');
-        $user->save();
         return 'TAD API';
     });
 
     $api->post('login', 'App\Http\Controllers\Api\V1\AuthController@login');
-    $api->post('logout', 'App\Http\Controllers\Api\V1\AuthController@logout');
-    $api->post('refresh', 'App\Http\Controllers\Api\V1\AuthController@refresh');
-    $api->post('me', 'App\Http\Controllers\Api\V1\AuthController@me');
 
+    $api->group(['middleware' => 'api.auth'], function ($api) {
+        $api->post('logout', 'App\Http\Controllers\Api\V1\AuthController@logout');
+        $api->post('refresh', 'App\Http\Controllers\Api\V1\AuthController@refresh');
+        $api->post('me', 'App\Http\Controllers\Api\V1\AuthController@me');
+    });
+    
     $api->group(['prefix' => 'biometric'], function ($api) {
         $api->get('info', 'App\Http\Controllers\Api\V1\BiometricInfoController@index');
         $api->resource('users', 'App\Http\Controllers\Api\V1\BiometricUsersController');
