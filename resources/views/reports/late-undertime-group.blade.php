@@ -84,6 +84,7 @@
 @section('custom-scripts')
 <script type="text/javascript">
   $(function() {
+    var token = $.cookie('token');
     var dataTable = null;
     var searchFiltersForm = $('#searchFiltersFrm');
 
@@ -96,7 +97,7 @@
       $('div.search-result').hide().before('<div class="search-result-loading"><h4><i class="fa fa-spin fa-spinner"></i> Loading...</h4></div>');
 
       if(dataTable) {
-        dataTable.ajax.url("{{url('api/reports/late-undertime')}}?"+data);
+        dataTable.ajax.url("{{url('api/reports/late-undertime')}}?token=" + token + '&' +data);
         dataTable.ajax.reload(function () {
           $('div.search-result').show();
           $('div.search-result-loading', 'body').remove();
@@ -112,7 +113,7 @@
           ],
           'paging': false,
           'searching': false,
-          'ajax': "{{url('api/reports/late-undertime')}}?"+data,
+          'ajax': "{{url('api/reports/late-undertime')}}?token=" + token + '&' + data,
           'initComplete': function () {
             $('div.search-result').show();
             $('div.search-result-loading', 'body').remove();

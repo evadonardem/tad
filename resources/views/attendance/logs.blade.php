@@ -76,6 +76,7 @@
 @section('custom-scripts')
 <script type="text/javascript">
   $(function() {
+    var token = $.cookie('token');
     var dataTable = null;
     var searchFiltersForm = $('#searchFiltersFrm');
 
@@ -83,12 +84,12 @@
       e.preventDefault();
       var data = $(this).serialize();
       if(dataTable) {
-        dataTable.ajax.url("{{url('api/biometric/attendance-logs')}}?"+data);
+        dataTable.ajax.url("{{url('api/biometric/attendance-logs')}}?token=" + token + '&' + data);
         dataTable.ajax.reload();
       } else {
         dataTable = $('table').DataTable({
           'searching': false,
-          'ajax': "{{url('api/biometric/attendance-logs')}}?"+data,
+          'ajax': "{{url('api/biometric/attendance-logs')}}?token=" + token + '&' + data,
           'columns': [
             { 'data': 'biometric_id' },
             { 'data': 'biometric_name' },

@@ -61,8 +61,9 @@
 @section('custom-scripts')
 <script type="text/javascript">
 $(function() {
-	 var dataTable = $('table').DataTable({
-      'ajax': "{{url('api/settings/common-time-shifts')}}",
+  var token = $.cookie('token');
+	var dataTable = $('table').DataTable({
+      'ajax': "{{url('api/settings/common-time-shifts')}}?token=" + token,
       'ordering': false,
       'searching': false,
       'order': [[0, 'desc']],
@@ -91,7 +92,7 @@ $(function() {
 		deleteModal.find('.modal-title').text('Delete Time Shift');
 		deleteModal.find('.modal-body').text('Are you sure to delete time shift for ' + effectivityDate + '?');
 		deleteModal.find('.modal-footer .btn.btn-primary').off().click(function () {
-			var url = "{{url('api/settings/common-time-shifts')}}/" + commonTimeShiftId;
+			var url = "{{url('api/settings/common-time-shifts')}}/" + commonTimeShiftId + '?token=' + token;
 			$.ajax({
 		        url: url,
 		        method: 'DELETE',
@@ -107,7 +108,7 @@ $(function() {
     var newFrm = $('#newCommonTimeShiftFrm');
     var registerBtn = $('#registerBtn');
     registerBtn.click(function() {
-      var url = "{{url('api/settings/common-time-shifts')}}";
+      var url = "{{url('api/settings/common-time-shifts')}}?token=" + token;
       var data = newFrm.serialize();
       
       $.ajax({

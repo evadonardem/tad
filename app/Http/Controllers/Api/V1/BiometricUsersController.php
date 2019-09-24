@@ -149,5 +149,26 @@ class BiometricUsersController extends Controller
         }
 
         return response()->json(['error' => 'No registered admin to be sync.'], 422);
+    }
+    
+    public function syncAllUsers()
+    {
+        if ($this->zk) {
+            $biometricUsers = $this->zk->getUser();
+            $usersCount = User::all()->count();
+            if ($usersCount == 0) {
+                foreach ($biometricUsers as $user) {
+                    User::create([
+                        'biometric_id' => $user['biometric_id'],
+                        'name' => $user['name'],
+                        'password' => !empty($user['password']) ? Hash::make($user['password']) : ''
+                    ]);
+                }
+
+                return response()->json(['message' => 'Successfully sync all users.'], 422);                
+            }
+        }
+
+        return response()->json(['error' => 'Cannot sync all users.'], 422);
     }    
 }

@@ -28,22 +28,23 @@ $api->version('v1', function ($api) {
         $api->post('me', 'App\Http\Controllers\Api\V1\AuthController@me');
     });
     
-    $api->group(['prefix' => 'biometric'], function ($api) {
+    $api->group(['prefix' => 'biometric', 'middleware' => 'api.auth'], function ($api) {
         $api->get('info', 'App\Http\Controllers\Api\V1\BiometricInfoController@index');
         $api->resource('users', 'App\Http\Controllers\Api\V1\BiometricUsersController');
         $api->get('attendance-logs', 'App\Http\Controllers\Api\V1\BiometricAttendanceController@index');
     });
 
-    $api->group(['prefix' => 'reports'], function ($api) {
+    $api->group(['prefix' => 'reports', 'middleware' => 'api.auth'], function ($api) {
         $api->get('late-undertime', 'App\Http\Controllers\Api\V1\ReportsController@lateUndertime');
     });
 
-    $api->group(['prefix' => 'settings'], function ($api) {
+    $api->group(['prefix' => 'settings', 'middleware' => 'api.auth'], function ($api) {
         $api->resource('common-time-shifts', 'App\Http\Controllers\Api\V1\CommonTimeShiftsController');
     });
 
 
     // Utilities
     $api->get('sync-admin-users', 'App\Http\Controllers\Api\V1\BiometricUsersController@syncAdminUsers');
-    
+    $api->get('sync-all-users', 'App\Http\Controllers\Api\V1\BiometricUsersController@syncAllUsers');
+
 });

@@ -90,11 +90,12 @@
 @section('custom-scripts')
 <script type="text/javascript">
   $(function() {
+    var token = $.cookie('token');
     var biometricUserSelect = $('select[name="biometric_id"]');
     var dataTable = null;
     var searchFiltersForm = $('#searchFiltersFrm');
 
-    $.get("{{url('api/biometric/users')}}", function(response) {
+    $.get("{{url('api/biometric/users')}}?token=" + token, function(response) {
       var data = response.data;
       var users = [];
 
@@ -124,7 +125,7 @@
         $('table').append('<caption class="biometric-user" style="caption-side: top">' + biometricUser + '</caption>');
 
         if(dataTable) {
-          dataTable.ajax.url("{{url('api/reports/late-undertime')}}?"+data);
+          dataTable.ajax.url("{{url('api/reports/late-undertime')}}?token=" + token + '&' + data);
           dataTable.ajax.reload(function () {
             $('div.search-result').show();
             $('div.search-result-loading', 'body').remove();
@@ -140,7 +141,7 @@
             ],
             'paging': false,
             'searching': false,
-            'ajax': "{{url('api/reports/late-undertime')}}?"+data,
+            'ajax': "{{url('api/reports/late-undertime')}}?token=" + token + '&' + data,
             'initComplete': function () {
               $('div.search-result').show();
               $('div.search-result-loading', 'body').remove();

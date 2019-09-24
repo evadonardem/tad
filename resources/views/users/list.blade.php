@@ -49,8 +49,9 @@
 @section('custom-scripts')
 <script type="text/javascript">
   $(function() {
+    var token = $.cookie('token');
     var dataTable = $('table').DataTable({
-      'ajax': "{{url('api/biometric/users')}}",
+      'ajax': "{{url('api/biometric/users')}}?token=" + token,
       'columns': [
         { 'data': 'biometric_id' },
         { 'data': 'name' },
@@ -74,7 +75,7 @@
       deleteModal.find('.modal-title').text('Delete Biometric User');
       deleteModal.find('.modal-body').text('Are you sure to delete biometric user ' + biometricId + ' ' + name + '?');
       deleteModal.find('.modal-footer .btn.btn-primary').off().click(function () {
-        var url = "{{url('api/biometric/users')}}/" + userId;
+        var url = "{{url('api/biometric/users')}}/" + userId + '?token=' + token;
         $.ajax({
             url: url,
             method: 'DELETE',
@@ -90,7 +91,7 @@
     var newFrm = $('#newUserFrm');
     var registerBtn = $('#registerBtn');
     registerBtn.click(function() {
-      var url = "{{url('api/biometric/users')}}"
+      var url = "{{url('api/biometric/users')}}?token=" + token;
       var data = newFrm.serialize();
       $.ajax({
         url: url,
