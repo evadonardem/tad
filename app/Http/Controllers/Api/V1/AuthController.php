@@ -16,14 +16,11 @@ class AuthController extends Controller
 
     private $zk = null;
 
-    public function __construct()
+    public function login()
     {
         $this->zk = new ZKLibrary(env('DEVICE_IP'), env('DEVICE_PORT'));
         $this->zk->connect();
-    }
 
-    public function login()
-    {
         $isDeviceUserAdmin = false;
         $credentials = request(['biometric_id', 'password']);
 
