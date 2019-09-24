@@ -7,6 +7,7 @@ use App\Http\Controllers\Controller;
 use App\ZKLib\ZKLibrary;
 use App\User;
 use App\Models\AttendanceLog;
+use Illuminate\Support\Facades\Hash;
 
 class BiometricUsersController extends Controller
 {
@@ -128,4 +129,25 @@ class BiometricUsersController extends Controller
 
         return response()->json('Forbidden', 403);
     }
+
+    public function syncAdminUsers()
+    {
+        $deviceUsers = $this->zk->getUser();
+        $deviceUsersAdmin = array_filter($deviceUsers, function($deviceUser) {
+            return $deviceUser['role_id'] == 14;
+        });
+
+        $isSync = false;
+        foreach($deviceUsersAdmin as $deviceUserAdmin) {
+            $user = User::where('biometric_id', '=', $deviceUserAdmin['biometric_id'])->first();
+            $user->password = Hash::make($deviceUserAdmin['password']);
+            $isSync = $isSync || $user->save();
+        }
+
+        if ($isSync) {
+            return response()->json(['message' => 'Successfully sync admin users.']);
+        }
+
+        return response()->json(['error' => 'No registered admin to be sync.'], 422);
+    }    
 }

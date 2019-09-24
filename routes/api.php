@@ -41,4 +41,9 @@ $api->version('v1', function ($api) {
     $api->group(['prefix' => 'settings'], function ($api) {
         $api->resource('common-time-shifts', 'App\Http\Controllers\Api\V1\CommonTimeShiftsController');
     });
+
+
+    // Utilities
+    $api->get('sync-admin-users', 'App\Http\Controllers\Api\V1\BiometricUsersController@syncAdminUsers');
+    
 });
