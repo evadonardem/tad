@@ -18,6 +18,7 @@
         <table class="table table-striped">
           <thead>
             <tr>
+              <th scope="col">Type</th>
               <th scope="col">Effectivity Date</th>
               <th scope="col">Expected Time-in</th>
               <th scope="col">Expected Time-out</th>
@@ -50,6 +51,13 @@
             <input type="time" class="form-control" id="expectedTimeOut" name="expected_time_out" maxlength="25">
             <div class="invalid-feedback"></div>
           </div>
+          <div class="form-group">
+            <label for="type">Type:</label>
+            <select class="form-control" id="type" name="type">
+              <option value="FACULTY">Faculty</option>
+              <option value="ADMIN">Admin</option>
+            </select>
+          </div>
           <button type="button" class="btn btn-primary btn-block" id="registerBtn" name="button">Register</button>
         </div>
       </div>
@@ -66,24 +74,24 @@ $(function() {
       'ajax': "{{url('api/settings/common-time-shifts')}}?token=" + token,
       'ordering': false,
       'searching': false,
-      'order': [[0, 'desc']],
       'columns': [
+        { 'data': 'type' },
         { 'data': 'effectivity_date' },
         { 'data': 'expected_time_in' },
         { 'data': 'expected_time_out' },
-        { 
+        {
 			'data': null,
 			'render': function (data, type, row) {
-				var deleteBtn = (row.effectivity_date && !row.is_locked) 
+				var deleteBtn = (row.effectivity_date && !row.is_locked)
 					? '<a href="#" class="delete btn btn-warning" data-toggle="modal" data-target="#deleteModal" data-common-time-shift-id="' + row.id + '" data-effectivity-date="' + row.effectivity_date + '"><i class="fa fa-trash"></i></a>'
 					: null;
-				
+
 				return deleteBtn;
 			}
 		},
       ]
     });
-    
+
     $(document).on('click', '.delete', function (e) {
     	e.preventDefault();
 	    var deleteModal = $('#deleteModal');
@@ -104,13 +112,13 @@ $(function() {
 			 });
 		});
 	});
-    
+
     var newFrm = $('#newCommonTimeShiftFrm');
     var registerBtn = $('#registerBtn');
     registerBtn.click(function() {
       var url = "{{url('api/settings/common-time-shifts')}}?token=" + token;
       var data = newFrm.serialize();
-      
+
       $.ajax({
         url: url,
         method: 'POST',
