@@ -54,7 +54,7 @@ class BiometricUsersController extends Controller
     public function store(Request $request)
     {
         if ($this->zk) {
-            $attributes = $request->only(['biometric_id', 'name']);
+            $attributes = $request->only(['biometric_id', 'type', 'name']);
             $users = $this->zk->getUser();
             $newRecordId = 1;
 
@@ -67,6 +67,7 @@ class BiometricUsersController extends Controller
 
             $user = User::create([
                 'biometric_id' => $attributes['biometric_id'],
+                'type' => $attributes['type'],
                 'name' => $attributes['name'],
                 'password' => ''
             ]);
@@ -150,7 +151,7 @@ class BiometricUsersController extends Controller
 
         return response()->json(['error' => 'No registered admin to be sync.'], 422);
     }
-    
+
     public function syncAllUsers()
     {
         if ($this->zk) {
@@ -165,10 +166,10 @@ class BiometricUsersController extends Controller
                     ]);
                 }
 
-                return response()->json(['message' => 'Successfully sync all users.'], 422);                
+                return response()->json(['message' => 'Successfully sync all users.'], 422);
             }
         }
 
         return response()->json(['error' => 'Cannot sync all users.'], 422);
-    }    
+    }
 }

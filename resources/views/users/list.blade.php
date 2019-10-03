@@ -15,6 +15,7 @@
           <thead>
             <tr>
               <th scope="col">Biometric ID</th>
+              <th scope="col">Type</th>
               <th scope="col">Name</th>
               <th></th>
             </tr>
@@ -38,6 +39,13 @@
             <label for="name">Name: <small>Max 25 characters</small></label>
             <input type="text" class="form-control" id="name" name="name" value="" maxlength="25">
           </div>
+          <div class="form-group">
+            <label for="type">Type:</label>
+            <select class="form-control" id="type" name="type">
+              <option value="FACULTY">Faculty</option>
+              <option value="ADMIN">Admin</option>
+            </select>
+          </div>
           <button type="button" class="btn btn-primary btn-block" id="registerBtn" name="button">Register</button>
         </div>
       </div>
@@ -54,12 +62,13 @@
       'ajax': "{{url('api/biometric/users')}}?token=" + token,
       'columns': [
         { 'data': 'biometric_id' },
+        { 'data': 'type' },
         { 'data': 'name' },
-        { 
+        {
           'data': null,
           'render': function (data, type, row) {
             var deleteBtn = '<a href="#" class="delete btn btn-warning" data-toggle="modal" data-target="#deleteModal" data-user-id="' + row.id + '" data-biometric-id="' + row.biometric_id + '" data-name="' + row.name + '"><i class="fa fa-trash"></i></a>';
-            
+
             return deleteBtn;
           }
         }
