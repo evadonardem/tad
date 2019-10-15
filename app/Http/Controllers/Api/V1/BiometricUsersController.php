@@ -41,6 +41,9 @@ class BiometricUsersController extends Controller
         }
 
         $users = User::orderBy('name', 'asc')->get();
+        $users->each(function ($user) {
+          $user->type = $user->types->last()->type;
+        });
 
         return response()->json(['data' => $users]);
     }

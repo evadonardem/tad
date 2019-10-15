@@ -20,6 +20,7 @@ Route::prefix('biometric')->group(function() {
   Route::get('reports', 'TAD@reports');
   Route::get('reports/late-undertime-group', 'TAD@reportsLateUndertimeGroup');
   Route::get('reports/late-undertime-individual', 'TAD@reportsLateUndertimeIndividual');
+  Route::get('reports/absences-group', 'TAD@reportsAbsencesGroup');
 });
 
 Route::get('settings', 'TAD@settings');

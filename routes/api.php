@@ -27,15 +27,20 @@ $api->version('v1', function ($api) {
         $api->post('refresh', 'App\Http\Controllers\Api\V1\AuthController@refresh');
         $api->post('me', 'App\Http\Controllers\Api\V1\AuthController@me');
     });
-    
+
     $api->group(['prefix' => 'biometric', 'middleware' => 'api.auth'], function ($api) {
         $api->get('info', 'App\Http\Controllers\Api\V1\BiometricInfoController@index');
         $api->resource('users', 'App\Http\Controllers\Api\V1\BiometricUsersController');
         $api->get('attendance-logs', 'App\Http\Controllers\Api\V1\BiometricAttendanceController@index');
     });
 
+    $api->group(['prefix' => 'override', 'middleware' => 'api.auth'], function ($api) {
+        $api->post('manual-attendance-logs', 'App\Http\Controllers\Api\V1\ManualAttendanceController@store');
+    });
+
     $api->group(['prefix' => 'reports', 'middleware' => 'api.auth'], function ($api) {
         $api->get('late-undertime', 'App\Http\Controllers\Api\V1\ReportsController@lateUndertime');
+        $api->get('absences', 'App\Http\Controllers\Api\V1\ReportsController@absences');
     });
 
     $api->group(['prefix' => 'settings', 'middleware' => 'api.auth'], function ($api) {

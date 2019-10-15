@@ -2,6 +2,7 @@
 
 use Illuminate\Database\Seeder;
 use App\User;
+use Carbon\Carbon;
 
 class GeneralDatabaseSeeder extends Seeder
 {
@@ -12,9 +13,23 @@ class GeneralDatabaseSeeder extends Seeder
      */
     public function run()
     {
-        User::where('type', '')
-          ->update([
-              'type' => 'FACULTY'
+        $users = User::all();
+        $users = $users->filter(function ($user) {
+          return $user->types->count() === 0;
+        });
+
+        $users->each(function ($user) {
+          $type = $user->types()->create([
+            'type' => 'FACULTY'
           ]);
+          $firstLog = $user->attendanceLogs()
+            ->orderBy('biometric_timestamp', 'asc')
+            ->first();
+          if($firstLog) {
+            $type->created_at = $type->updated_at = Carbon::parse($firstLog->biometric_timestamp)
+              ->format('Y-m-d H:i:s');
+            $type->save();
+          }
+        });
     }
 }

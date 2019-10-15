@@ -67,25 +67,66 @@
       <div class="container my-4">
         @yield('content')
 
-		<!-- Delete Modal -->
-		<div class="modal fade" id="deleteModal" tabindex="-1" role="dialog" aria-labelledby="deleteModalTitle" aria-hidden="true">
-		  <div class="modal-dialog modal-dialog-centered" role="document">
-		    <div class="modal-content">
-		      <div class="modal-header">
-		        <h5 class="modal-title"></h5>
-		        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-		          <span aria-hidden="true">&times;</span>
-		        </button>
-		      </div>
-		      <div class="modal-body">
-		      </div>
-		      <div class="modal-footer">
-		        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-		        <button type="button" class="btn btn-primary">Yes</button>
-		      </div>
-		    </div>
-		  </div>
-		</div>
+    		<!-- Delete Modal -->
+    		<div class="modal fade" id="deleteModal" tabindex="-1" role="dialog" aria-labelledby="deleteModalTitle" aria-hidden="true">
+    		  <div class="modal-dialog modal-dialog-centered" role="document">
+    		    <div class="modal-content">
+    		      <div class="modal-header">
+    		        <h5 class="modal-title"></h5>
+    		        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+    		          <span aria-hidden="true">&times;</span>
+    		        </button>
+    		      </div>
+    		      <div class="modal-body">
+    		      </div>
+    		      <div class="modal-footer">
+    		        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+    		        <button type="button" class="btn btn-primary">Yes</button>
+    		      </div>
+    		    </div>
+    		  </div>
+    		</div>
+
+        <!-- Manual Time-in/out Modal -->
+    		<div class="modal fade" id="manualTimeInOutModal" tabindex="-1" role="dialog" aria-labelledby="manualTimeInOutModalTitle" aria-hidden="true">
+    		  <div class="modal-dialog modal-dialog-centered" role="document">
+    		    <div class="modal-content">
+    		      <div class="modal-header">
+    		        <h5 class="modal-title"></h5>
+    		        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+    		          <span aria-hidden="true">&times;</span>
+    		        </button>
+    		      </div>
+    		      <div class="modal-body">
+                <p><span class="biometric-id"></span> <span class="name"></span></p>
+                <div class="form-group">
+                  <label for="logDate">Date:</label>
+                  <input type="date" class="form-control" id="logDate" name="log_date" readonly>
+                  <div class="invalid-feedback"></div>
+                </div>
+                <div class="form-group">
+                  <label for="timeIn">Time-In:</label>
+                  <input type="time" class="form-control" id="timeIn" name="time_in">
+                  <div class="invalid-feedback"></div>
+                </div>
+                <div class="form-group">
+                  <label for="timeOut">Time-Out:</label>
+                  <input type="time" class="form-control" id="timeOut" name="time_out">
+                  <div class="invalid-feedback"></div>
+                </div>
+                <div class="form-group">
+                  <label for="timeOut">Reason</label>
+                  <textarea class="form-control" id="reason" name="reason"></textarea>
+                  <div class="invalid-feedback"></div>
+                </div>
+    		      </div>
+    		      <div class="modal-footer">
+    		        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+    		        <button type="button" class="btn btn-primary">Save</button>
+    		      </div>
+    		    </div>
+    		  </div>
+    		</div>
       </div>
 
       <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>

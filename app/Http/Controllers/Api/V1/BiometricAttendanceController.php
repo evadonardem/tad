@@ -41,11 +41,18 @@ class BiometricAttendanceController extends Controller
                 });
                 $user = array_pop($filteredUser);
 
-                AttendanceLog::create([
-                  'biometric_id' => $log['biometric_id'],
-                  'biometric_name' => $user['name'],
-                  'biometric_timestamp' => $log['timestamp']
-                ]);
+                if ($user) {
+                  AttendanceLog::where([
+                    'biometric_id' => $log['biometric_id'],
+                    'biometric_timestamp' => $log['timestamp']
+                  ])->delete();
+
+                  AttendanceLog::create([
+                    'biometric_id' => $log['biometric_id'],
+                    'biometric_name' => $user['name'],
+                    'biometric_timestamp' => $log['timestamp']
+                  ]);
+                }
             }
 
             $this->zk->clearAttendance();
