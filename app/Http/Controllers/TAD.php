@@ -137,6 +137,11 @@ class TAD extends Controller
         ]);
     }
 
+    public function reportsAbsencesIndividual()
+    {
+        return view('reports.absences-individual');
+    }
+
     public function settings()
     {
     	return view('settings.index');

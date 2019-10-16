@@ -19,12 +19,14 @@
               <div class="form-group">
                 <label>Start Date</label>
                 <input type="date" class="form-control" name="start_date">
+                <div class="invalid-feedback"></div>
               </div>
             </div>
             <div class="col">
               <div class="form-group">
                 <label>End Date</label>
                 <input type="date" class="form-control" name="end_date">
+                <div class="invalid-feedback"></div>
               </div>
             </div>
           </div>
@@ -44,11 +46,12 @@
 <div class="row">
   <div class="col">
     <div class="search-result" style="display: none;">
-      <table class="table table-striped">
+      <table class="table table-striped" style="width: 100%;">
         <thead>
           <tr>
             <th scope="col">Biometric ID</th>
             <th scope="col">Name</th>
+            <th scope="col">Type</th>
             <th scope="col">Date</th>
             <th scope="col">Expected Time-in</th>
             <th scope="col">Expected Time-out</th>
@@ -71,8 +74,9 @@
             <th></th>
             <th></th>
             <th></th>
-            <th style="text-align: right;">Total (min.):</th>
             <th></th>
+            <th style="text-align: right;">Total (min.):</th>
+            <th style="text-align: right;"></th>
           </tr>
         </tfoot>
       </table>
@@ -88,10 +92,25 @@
     var dataTable = null;
     var searchFiltersForm = $('#searchFiltersFrm');
 
+    $(document).on('change', $('select, input', searchFiltersForm), function (e) {
+      if (dataTable) {
+        dataTable.clear().draw();
+      }
+      $('div.search-result').hide();
+    });
+
     searchFiltersForm.submit(function(e) {
       e.preventDefault();
-      var exportTitle = 'ReportLateUndertimeByGroup';
+
       var data = $(this).serialize();
+      var filename = function () {
+        var period = $('[name="start_date"]').val() + ' to ' + $('[name="end_date"]').val();
+        return 'Late And Under Time - ' + period;
+      };
+
+      $(this).find('.is-invalid').each(function() {
+        $(this).removeClass('is-invalid');
+      });
 
       $('div.search-result-loading', 'body').remove();
       $('div.search-result').hide().before('<div class="search-result-loading"><h4><i class="fa fa-spin fa-spinner"></i> Loading...</h4></div>');
@@ -103,17 +122,58 @@
           $('div.search-result-loading', 'body').remove();
         });
       } else {
+        $.fn.dataTable.ext.errMode = 'none';
         dataTable = $('table').DataTable({
           'dom': 'Bfrtip',
           'buttons': [
-            { extend: 'copyHtml5', title: exportTitle, footer: true },
-            { extend: 'excelHtml5', title: exportTitle, footer: true },
-            { extend: 'csvHtml5', title: exportTitle, footer: true },
-            { extend: 'pdfHtml5', title: exportTitle, footer: true }
+            {
+              extend: 'excelHtml5',
+              title: function() {
+                return filename();
+              },
+              filename: function() {
+                return filename();
+              },
+              footer: true
+            },
+            {
+              extend: 'csvHtml5',
+              filename: function() {
+                return filename();
+              },
+              footer: true
+            },
+            {
+              extend: 'pdfHtml5',
+              title: function() {
+                return filename();
+              },
+              filename: function() {
+                return filename();
+              },
+              footer: true
+            }
           ],
           'paging': false,
           'searching': false,
-          'ajax': "{{url('api/reports/late-undertime')}}?token=" + token + '&' + data,
+          'ordering': false,
+          'ajax': {
+            'url': "{{url('api/reports/late-undertime')}}?token=" + token + '&' + data,
+            'error': function (xhr) {
+              $('div.search-result-loading', 'body').remove();
+              var data = xhr.responseJSON;
+              if (data) {
+                var errors = data.errors;
+                for (key in errors) {
+                  $('[name=' + key + ']', searchFiltersForm)
+                    .addClass('is-invalid')
+                    .closest('.form-group')
+                    .find('.invalid-feedback')
+                    .text(errors[key][0]);
+                }
+              }
+            }
+          },
           'initComplete': function () {
             $('div.search-result').show();
             $('div.search-result-loading', 'body').remove();
@@ -121,6 +181,7 @@
           'columns': [
             { 'data': 'biometric_id' },
             { 'data': 'name' },
+            { 'data': 'type' },
             { 'data': 'date' },
             { 'data': 'expected_time_in' },
             { 'data': 'expected_time_out' },
@@ -130,10 +191,6 @@
             { 'data': 'undertime_in_minutes' },
             { 'data': 'total_late_undertime_in_minutes' }
           ],
-          'columnDefs': [
-            { 'orderable': false, 'targets': [0, 1] }
-          ],
-          'order': [[2, 'asc']],
           'footerCallback': function ( row, data, start, end, display ) {
             var api = this.api(), data;
 
@@ -147,14 +204,14 @@
 
             // Total over all pages
             total = api
-                .column( 9 )
+                .column( 10 )
                 .data()
                 .reduce( function (a, b) {
                     return intVal(a) + intVal(b);
                 }, 0 );
 
             // Update footer
-            $( api.column( 9 ).footer() ).html( total );
+            $( api.column( 10 ).footer() ).html( total );
           }
         });
       }

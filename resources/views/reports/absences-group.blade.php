@@ -3,7 +3,10 @@
 @section('title', 'Reports')
 
 @section('content')
-<h1><i class="fa fa-file-text"></i> Absences (Group)</h1>
+<h1>
+  <i class="fa fa-file-text"></i>
+  Absences No Time-In/Out (Group)
+</h1>
 
 <hr class="my-4">
 
@@ -19,12 +22,14 @@
               <div class="form-group">
                 <label>Start Date</label>
                 <input type="date" class="form-control" name="start_date">
+                <div class="invalid-feedback"></div>
               </div>
             </div>
             <div class="col">
               <div class="form-group">
                 <label>End Date</label>
                 <input type="date" class="form-control" name="end_date">
+                <div class="invalid-feedback"></div>
               </div>
             </div>
           </div>
@@ -81,10 +86,25 @@
     var dataTable = null;
     var searchFiltersForm = $('#searchFiltersFrm');
 
+    $(document).on('change', $('select, input', searchFiltersForm), function (e) {
+      if (dataTable) {
+        dataTable.clear().draw();
+      }
+      $('div.search-result').hide();
+    });
+
     searchFiltersForm.submit(function(e) {
       e.preventDefault();
-      var exportTitle = 'ReportLateUndertimeByGroup';
+
       var data = $(this).serialize();
+      var filename = function () {
+        var period = $('[name="start_date"]').val() + ' to ' + $('[name="end_date"]').val();
+        return 'Absences - ' + period;
+      };
+
+      $(this).find('.is-invalid').each(function() {
+        $(this).removeClass('is-invalid');
+      });
 
       $('div.search-result-loading', 'body').remove();
       $('div.search-result').hide().before('<div class="search-result-loading"><h4><i class="fa fa-spin fa-spinner"></i> Loading...</h4></div>');
@@ -96,17 +116,58 @@
           $('div.search-result-loading', 'body').remove();
         });
       } else {
+        $.fn.dataTable.ext.errMode = 'none';
         dataTable = $('table').DataTable({
           'dom': 'Bfrtip',
           'buttons': [
-            { extend: 'copyHtml5', title: exportTitle, footer: true },
-            { extend: 'excelHtml5', title: exportTitle, footer: true },
-            { extend: 'csvHtml5', title: exportTitle, footer: true },
-            { extend: 'pdfHtml5', title: exportTitle, footer: true }
+            {
+              extend: 'excelHtml5',
+              title: function() {
+                return filename();
+              },
+              filename: function() {
+                return filename();
+              },
+              footer: true
+            },
+            {
+              extend: 'csvHtml5',
+              filename: function() {
+                return filename();
+              },
+              footer: true
+            },
+            {
+              extend: 'pdfHtml5',
+              title: function() {
+                return filename();
+              },
+              filename: function() {
+                return filename();
+              },
+              footer: true
+            }
           ],
           'paging': false,
           'searching': false,
-          'ajax': "{{url('api/reports/absences')}}?token=" + token + '&' + data,
+          'ordering': false,
+          'ajax': {
+            'url': "{{url('api/reports/absences')}}?token=" + token + '&' + data,
+            'error': function (xhr) {
+              $('div.search-result-loading', 'body').remove();
+              var data = xhr.responseJSON;
+              if (data) {
+                var errors = data.errors;
+                for (key in errors) {
+                  $('[name=' + key + ']', searchFiltersForm)
+                    .addClass('is-invalid')
+                    .closest('.form-group')
+                    .find('.invalid-feedback')
+                    .text(errors[key][0]);
+                }
+              }
+            }
+          },
           'initComplete': function () {
             $('div.search-result').show();
             $('div.search-result-loading', 'body').remove();
@@ -134,11 +195,7 @@
                 return manualTimeInOutBtn;
               }
             }
-          ],
-          'columnDefs': [
-            { 'orderable': false, 'targets': [0, 1] }
-          ],
-          'order': [[2, 'asc']]
+          ]
         });
       }
     });

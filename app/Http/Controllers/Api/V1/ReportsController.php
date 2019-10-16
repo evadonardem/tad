@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Api\V1;
 
 use Illuminate\Http\Request;
+use App\Http\Requests\GetAbsencesReportRequest;
+use App\Http\Requests\GetLateUndertimeReportRequest;
 use App\Http\Controllers\Controller;
 use Dingo\Api\Routing\Helpers;
 use Carbon\Carbon;
@@ -14,7 +16,7 @@ class ReportsController extends Controller
 {
     use Helpers;
 
-    public function lateUndertime(Request $request)
+    public function lateUndertime(GetLateUndertimeReportRequest $request)
     {
         $type = $request->input('type');
 
@@ -31,8 +33,14 @@ class ReportsController extends Controller
         $users = $this->api->get('biometric/users');
         $users = $users['data'];
 
+        if ($biometricId) {
+          $users = array_filter($users, function ($user) use ($biometricId) {
+            return $user['biometric_id'] == $biometricId;
+          });
+        }
+
         $queryParams = 'start_date=' . $startDate->format('Y-m-d') . '&end_date=' . $endDate->format('Y-m-d');
-        $queryParams .= ($type ? '&biometric_id=' . $biometricId : '');
+        $queryParams .= ($biometricId ? '&biometric_id=' . $biometricId : '');
 
         $attendanceLogs = $this->api->get('biometric/attendance-logs?' . $queryParams);
         $attendanceLogs = $attendanceLogs['data'];
@@ -114,7 +122,7 @@ class ReportsController extends Controller
         return response()->json(['data' => $report]);
     }
 
-    public function absences(Request $request)
+    public function absences(GetAbsencesReportRequest $request)
     {
         $type = $request->input('type');
 
@@ -131,8 +139,14 @@ class ReportsController extends Controller
         $users = $this->api->get('biometric/users');
         $users = $users['data'];
 
+        if ($biometricId) {
+          $users = array_filter($users, function ($user) use ($biometricId) {
+            return $user['biometric_id'] == $biometricId;
+          });
+        }
+
         $queryParams = 'start_date=' . $startDate->format('Y-m-d') . '&end_date=' . $endDate->format('Y-m-d');
-        $queryParams .= ($type ? '&biometric_id=' . $biometricId : '');
+        $queryParams .= ($biometricId ? '&biometric_id=' . $biometricId : '');
 
         $attendanceLogs = $this->api->get('biometric/attendance-logs?' . $queryParams);
         $attendanceLogs = $attendanceLogs['data'];
@@ -141,7 +155,10 @@ class ReportsController extends Controller
 
         while ($startDate <= $endDate) {
 
-            if ($startDate->isWeekend()) {
+            if (
+              $startDate >= Carbon::now() ||
+              $startDate->isWeekend()
+            ) {
               $startDate->addDay(1);
               continue;
             }

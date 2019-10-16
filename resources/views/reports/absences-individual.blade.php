@@ -3,7 +3,10 @@
 @section('title', 'Reports')
 
 @section('content')
-<h1><i class="fa fa-file-text"></i> Late & Under Time (Individual)</h1>
+<h1>
+  <i class="fa fa-file-text"></i>
+  Absences No Time-In/Out (Individual)
+</h1>
 
 <hr class="my-4">
 
@@ -41,6 +44,10 @@
               </div>
             </div>
           </div>
+          <div class="alert alert-block alert-info">
+            <i class="fa fa-icon fa-info-circle"></i>
+            By default dates fall in weekend are excluded.
+          </div>
         </div>
         <div class="card-footer">
           <div class="pull-right">
@@ -69,23 +76,12 @@
             <th scope="col">Late (min.)</th>
             <th scope="col">Under Time (min.)</th>
             <th scope="col">Total (min.)</th>
+            <th scope="col">Reason</th>
+            <th scope="col"></th>
           </tr>
         </thead>
         <tbody>
         </tbody>
-        <tfoot>
-          <tr>
-            <th></th>
-            <th></th>
-            <th></th>
-            <th></th>
-            <th></th>
-            <th></th>
-            <th></th>
-            <th style="text-align: right;">Total (min.):</th>
-            <th style="text-align: right;"></th>
-          </tr>
-        </tfoot>
       </table>
     </div>
   </div>
@@ -131,18 +127,18 @@
         var filename = function () {
           var biometricUser = biometricUserSelect.select2('data')[0].text;
           var period = $('[name="start_date"]').val() + ' to ' + $('[name="end_date"]').val();
-          return biometricUser + ' Late And Under Time - ' + period;
+          return biometricUser + ' Absences - ' + period;
         };
 
         $(this).find('.is-invalid').each(function() {
           $(this).removeClass('is-invalid');
         });
-        
+
         $('div.search-result-loading', 'body').remove();
         $('div.search-result').hide().before('<div class="search-result-loading"><h4><i class="fa fa-spin fa-spinner"></i> Loading...</h4></div>');
 
         if(dataTable) {
-          dataTable.ajax.url("{{url('api/reports/late-undertime')}}?token=" + token + '&' + data);
+          dataTable.ajax.url("{{url('api/reports/absences')}}?token=" + token + '&' + data);
           dataTable.ajax.reload(function () {
             $('div.search-result').show();
             $('div.search-result-loading', 'body').remove();
@@ -184,7 +180,7 @@
             'searching': false,
             'ordering': false,
             'ajax': {
-              'url': "{{url('api/reports/late-undertime')}}?token=" + token + '&' + data,
+              'url': "{{url('api/reports/absences')}}?token=" + token + '&' + data,
               'error': function (xhr) {
                 $('div.search-result-loading', 'body').remove();
                 var data = xhr.responseJSON;
@@ -213,35 +209,75 @@
               { 'data': 'time_out' },
               { 'data': 'late_in_minutes' },
               { 'data': 'undertime_in_minutes' },
-              { 'data': 'total_late_undertime_in_minutes' }
-            ],
-            'footerCallback': function ( row, data, start, end, display ) {
-              var api = this.api(), data;
+              { 'data': 'total_late_undertime_in_minutes' },
+              { 'data': 'reason' },
+              {
+                'data': null,
+                'render': function (data, type, row) {
+                  var manualTimeInOutBtn = !row.time_in && !row.time_out
+                    ? '<a href="#" class="manual-time-in-out btn btn-warning" data-toggle="modal" data-target="#manualTimeInOutModal" data-date="' + row.date + '" data-biometric-id="' + row.biometric_id + '" data-name="' + row.name + '"><i class="fa fa-clock-o"></i></a>'
+                    : null;
 
-              // Remove the formatting to get integer data for summation
-              var intVal = function ( i ) {
-                  return typeof i === 'string' ?
-                      i.replace(/[\$,]/g, '')*1 :
-                      typeof i === 'number' ?
-                          i : 0;
-              };
-
-              // Total over all pages
-              total = api
-                  .column( 8 )
-                  .data()
-                  .reduce( function (a, b) {
-                      return intVal(a) + intVal(b);
-                  }, 0 );
-
-              // Update footer
-              $( api.column( 8 ).footer() ).html( total );
-            }
+                  return manualTimeInOutBtn;
+                }
+              }
+            ]
           });
         }
 
       });
     });
+
+    $(document).on('click', '.manual-time-in-out', function (e) {
+      e.preventDefault();
+      var modal = $('#manualTimeInOutModal');
+      var date = $(this).data('date');
+      var biometricId = $(this).data('biometric-id');
+      var name = $(this).data('name');
+      modal.find('.modal-title').text('Manual Time-In/Out');
+      modal.find('.modal-body').find('.biometric-id').text(biometricId);
+      modal.find('.modal-body').find('.name').text(name);
+      modal.find('.modal-body').find('#logDate').val(date);
+      modal.find('.modal-body').find('#timeIn').val('');
+      modal.find('.modal-body').find('#timeOut').val('');
+      modal.find('.modal-body').find('#reason').val('');
+      modal.find('.is-invalid').each(function() {
+        $(this).removeClass('is-invalid');
+      });
+      modal.find('.modal-footer .btn.btn-primary').off().click(function () {
+        var url = "{{url('api/override/manual-attendance-logs')}}?token=" + token;
+        $.ajax({
+            url: url,
+            method: 'POST',
+            data: {
+              biometric_id: biometricId,
+              log_date: date,
+              time_in: modal.find('.modal-body').find('#timeIn').val(),
+              time_out: modal.find('.modal-body').find('#timeOut').val(),
+              reason: modal.find('.modal-body').find('#reason').val()
+            },
+            beforeSend: function () {
+            	modal.find('.is-invalid').each(function() {
+                $(this).removeClass('is-invalid');
+    	        });
+            },
+            success: function(response) {
+              dataTable.ajax.reload();
+              modal.modal('hide');
+            },
+            error: function(xhr) {
+              var data = xhr.responseJSON;
+              if (data) {
+                var errors = data.errors;
+                for (key in errors) {
+                  $('[name=' + key + ']', modal).addClass('is-invalid').next().text(errors[key][0]);
+                }
+              }
+            }
+         });
+      });
+    });
+
   });
 </script>
 @endsection

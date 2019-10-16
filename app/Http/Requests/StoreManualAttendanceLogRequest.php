@@ -27,7 +27,7 @@ class StoreManualAttendanceLogRequest extends FormRequest
     {
         return [
           'biometric_id' => 'required',
-          'log_date' => ['required', 'date', 'before:today',
+          'log_date' => ['required', 'date', 'before:now',
               Rule::unique('manual_attendance_logs')->where(function ($query) use ($request) {
                   $query->where('log_date', $request->input('log_date'))
                     ->where('biometric_id', $request->input('biometric_id'));
