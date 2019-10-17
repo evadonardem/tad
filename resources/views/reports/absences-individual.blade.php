@@ -96,7 +96,7 @@
     var dataTable = null;
     var searchFiltersForm = $('#searchFiltersFrm');
 
-    $(document).on('change', $('select, input', searchFiltersForm), function (e) {
+    $('select, input', searchFiltersForm).on('change', function (e) {
       if (dataTable) {
         dataTable.clear().draw();
       }

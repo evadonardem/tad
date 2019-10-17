@@ -100,7 +100,7 @@
     var dataTable = null;
     var searchFiltersForm = $('#searchFiltersFrm');
 
-    $(document).on('change', $('select, input', searchFiltersForm), function (e) {
+    $('select, input', searchFiltersForm).on('change', function (e) {
       if (dataTable) {
         dataTable.clear().draw();
       }
@@ -137,7 +137,7 @@
         $(this).find('.is-invalid').each(function() {
           $(this).removeClass('is-invalid');
         });
-        
+
         $('div.search-result-loading', 'body').remove();
         $('div.search-result').hide().before('<div class="search-result-loading"><h4><i class="fa fa-spin fa-spinner"></i> Loading...</h4></div>');
 
