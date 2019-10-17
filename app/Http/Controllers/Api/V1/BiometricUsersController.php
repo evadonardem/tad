@@ -16,7 +16,6 @@ class BiometricUsersController extends Controller
     public function __construct()
     {
         $this->zk = new ZKLibrary(env('DEVICE_IP'), env('DEVICE_PORT'));
-        $this->zk->connect();
     }
 
     /**
@@ -26,20 +25,6 @@ class BiometricUsersController extends Controller
      */
     public function index()
     {
-        if ($this->zk) {
-            $biometricUsers = $this->zk->getUser();
-            $usersCount = User::all()->count();
-            if ($usersCount == 0) {
-                foreach ($biometricUsers as $user) {
-                    User::create([
-                        'biometric_id' => $user['biometric_id'],
-                        'name' => $user['name'],
-                        'password' => !empty($user['password']) ? Hash::make($user['password']) : ''
-                    ]);
-                }
-            }
-        }
-
         $users = User::orderBy('name', 'asc')->get();
         $users->each(function ($user) {
           if ($user->types->count() > 0) {
@@ -61,32 +46,45 @@ class BiometricUsersController extends Controller
      */
     public function store(Request $request)
     {
-        if ($this->zk) {
-            $attributes = $request->only(['biometric_id', 'type', 'name']);
-            $users = $this->zk->getUser();
-            $newRecordId = 1;
+        $this->zk->connect();
 
-            if (!empty($users)) {
-                $recordIds = array_column($users, 'record_id');
-                $newRecordId = ((int)max($recordIds)) + 1;
-            }
+        $attributes = $request->only([
+            'biometric_id',
+            'type',
+            'name'
+        ]);
 
-            $this->zk->setUser($newRecordId, $attributes['biometric_id'], $attributes['name'], '', 0);
+        $users = $this->zk->getUser();
+        $newRecordId = 1;
 
-            $user = User::create([
-                'biometric_id' => $attributes['biometric_id'],
-                'name' => $attributes['name'],
-                'password' => ''
-            ]);
-
-            $user->types()->create([
-              'type' => $attributes['type']
-            ]);
-
-            return ($user) ? response()->noContent() : response()->json('Forbidden', 403);
+        if (!empty($users)) {
+          $recordIds = array_column($users, 'record_id');
+          $newRecordId = ((int)max($recordIds)) + 1;
         }
 
-        return response()->json('Forbidden', 403);
+        $this->zk->setUser(
+            $newRecordId,
+            $attributes['biometric_id'],
+            $attributes['name'],
+            '',
+            0
+        );
+
+        $this->zk->disconnect();
+
+        $user = User::create([
+          'biometric_id' => $attributes['biometric_id'],
+          'name' => $attributes['name'],
+          'password' => ''
+        ]);
+
+        $user->types()->create([
+          'type' => $attributes['type']
+        ]);
+
+        return ($user)
+          ? response()->noContent()
+          : response()->json('Forbidden', 403);
     }
 
     /**
@@ -120,31 +118,39 @@ class BiometricUsersController extends Controller
      */
     public function destroy($id)
     {
-        if ($this->zk) {
-            $deviceUsers = $this->zk->getUser();
-            $storedUser = User::findOrFail($id);
+        $this->zk->connect();
 
-            $filteredDeviceUsers = array_filter($deviceUsers, function ($deviceUser) use ($storedUser) {
-                return $deviceUser['biometric_id'] == $storedUser->biometric_id;
-            });
+        $deviceUsers = $this->zk->getUser();
 
-            $deviceUser = (count($filteredDeviceUsers) > 0) ? array_pop($filteredDeviceUsers) : null;
+        $storedUser = User::findOrFail($id);
 
-            if ($deviceUser) {
-                $this->zk->deleteUser($deviceUser['record_id']);
-                $storedUser->delete();
-                AttendanceLog::where('biometric_id', '=', $storedUser->biometric_id)->delete();
+        $filteredDeviceUsers = array_filter($deviceUsers, function ($deviceUser) use ($storedUser) {
+            return $deviceUser['biometric_id'] == $storedUser->biometric_id;
+        });
 
-                return $storedUser;
-            }
+        $deviceUser = (count($filteredDeviceUsers) > 0) ? array_pop($filteredDeviceUsers) : null;
+
+        if ($deviceUser) {
+            $this->zk->deleteUser($deviceUser['record_id']);
+            $storedUser->delete();
+            AttendanceLog::where('biometric_id', '=', $storedUser->biometric_id)->delete();
+
+            $this->zk->disconnect();
+
+            return $storedUser;
         }
 
-        return response()->json('Forbidden', 403);
+        response()->json('Forbidden', 403);
     }
 
     public function syncAdminUsers()
     {
+        $this->zk->connect();
+
         $deviceUsers = $this->zk->getUser();
+
+        $this->zk->disconnect();
+
         $deviceUsersAdmin = array_filter($deviceUsers, function($deviceUser) {
             return $deviceUser['role_id'] == 14;
         });
@@ -165,20 +171,23 @@ class BiometricUsersController extends Controller
 
     public function syncAllUsers()
     {
-        if ($this->zk) {
-            $biometricUsers = $this->zk->getUser();
-            $usersCount = User::all()->count();
-            if ($usersCount == 0) {
-                foreach ($biometricUsers as $user) {
-                    User::create([
-                        'biometric_id' => $user['biometric_id'],
-                        'name' => $user['name'],
-                        'password' => !empty($user['password']) ? Hash::make($user['password']) : ''
-                    ]);
-                }
+        $this->zk->connect();
 
-                return response()->json(['message' => 'Successfully sync all users.'], 422);
+        $biometricUsers = $this->zk->getUser();
+
+        $this->zk->disconnect();
+
+        $usersCount = User::all()->count();
+        if ($usersCount == 0) {
+            foreach ($biometricUsers as $user) {
+                User::create([
+                    'biometric_id' => $user['biometric_id'],
+                    'name' => $user['name'],
+                    'password' => !empty($user['password']) ? Hash::make($user['password']) : ''
+                ]);
             }
+
+            return response()->json(['message' => 'Successfully sync all users.'], 422);
         }
 
         return response()->json(['error' => 'Cannot sync all users.'], 422);
