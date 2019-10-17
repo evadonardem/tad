@@ -42,7 +42,12 @@ class BiometricUsersController extends Controller
 
         $users = User::orderBy('name', 'asc')->get();
         $users->each(function ($user) {
-          $user->type = $user->types->last()->type;
+          if ($user->types->count() > 0) {
+            $user->type = $user->types->last()->type;
+          } else {
+            $user->type = null;
+          }
+
         });
 
         return response()->json(['data' => $users]);
@@ -70,9 +75,12 @@ class BiometricUsersController extends Controller
 
             $user = User::create([
                 'biometric_id' => $attributes['biometric_id'],
-                'type' => $attributes['type'],
                 'name' => $attributes['name'],
                 'password' => ''
+            ]);
+
+            $user->types()->create([
+              'type' => $attributes['type']
             ]);
 
             return ($user) ? response()->noContent() : response()->json('Forbidden', 403);
