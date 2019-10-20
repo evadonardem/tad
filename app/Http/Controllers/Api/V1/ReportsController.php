@@ -9,6 +9,7 @@ use App\Http\Controllers\Controller;
 use Dingo\Api\Routing\Helpers;
 use Carbon\Carbon;
 use App\User;
+use App\Models\AttendanceLogAdjustment;
 use App\Models\CommonTimeShift;
 use App\Models\ManualAttendanceLog;
 
@@ -96,7 +97,22 @@ class ReportsController extends Controller
                     $undertime = $expectedTimeInOut[$userType]['expectedTimeOutMinutes'] - $timeOutInMinutes;
                     $undertime = number_format($undertime > 0 ? $undertime : 0, 2);
 
-                    $totalLateUndertime = number_format($late + $undertime, 2);
+                    $adjustment = 0;
+                    $reason = '';
+                    $isAdjusted = false;
+
+                    $attendanceLogAdjustment = AttendanceLogAdjustment::where([
+                        'biometric_id' => $user['biometric_id'],
+                        'log_date' => $date
+                    ])->first();
+
+                    if ($attendanceLogAdjustment) {
+                        $adjustment = $attendanceLogAdjustment->adjustment_in_minutes;
+                        $reason = $attendanceLogAdjustment->reason;
+                        $isAdjusted = true;
+                    }
+
+                    $totalLateUndertime = number_format($late + $undertime - $adjustment, 2);
 
                     $tmp = [
                         'biometric_id' => $user['biometric_id'],
@@ -109,7 +125,10 @@ class ReportsController extends Controller
                         'time_out' => $timeOut->format('H:i:s'),
                         'late_in_minutes' => $late,
                         'undertime_in_minutes' => $undertime,
-                        'total_late_undertime_in_minutes' => $totalLateUndertime
+                        'adjustment_in_minutes' => $adjustment,
+                        'total_late_undertime_in_minutes' => $totalLateUndertime,
+                        'reason' => $reason,
+                        'is_adjusted' => $isAdjusted
                     ];
 
                     $report[] = $tmp;
