@@ -50,6 +50,7 @@ class ReportsController extends Controller
 
         while ($startDate <= $endDate) {
             $date = $startDate->format('Y-m-d');
+            $dateDisplay = $startDate->format('D d-M-y');
 
             $expectedTimeInOut = $this->expectedTimeInOut($date);
 
@@ -119,10 +120,11 @@ class ReportsController extends Controller
                         'name' => $user['name'],
                         'type' => $userType,
                         'date' => $date,
-                        'expected_time_in' => $expectedTimeInOut[$userType]['expectedTimeIn']->format('H:i:s'),
-                        'expected_time_out' => $expectedTimeInOut[$userType]['expectedTimeOut']->format('H:i:s'),
-                        'time_in' => $timeIn->format('H:i:s'),
-                        'time_out' => $timeOut->format('H:i:s'),
+                        'display_date' => $dateDisplay,
+                        'expected_time_in' => $expectedTimeInOut[$userType]['expectedTimeIn']->format('h:i:s A'),
+                        'expected_time_out' => $expectedTimeInOut[$userType]['expectedTimeOut']->format('h:i:s A'),
+                        'time_in' => $timeIn->format('h:i:s A'),
+                        'time_out' => $timeOut->format('h:i:s A'),
                         'late_in_minutes' => $late,
                         'undertime_in_minutes' => $undertime,
                         'adjustment_in_minutes' => $adjustment,
@@ -176,13 +178,14 @@ class ReportsController extends Controller
 
             if (
               $startDate >= Carbon::now() ||
-              $startDate->isWeekend()
+              $startDate->dayOfWeek == Carbon::SUNDAY
             ) {
               $startDate->addDay(1);
               continue;
             }
 
             $date = $startDate->format('Y-m-d');
+            $dateDisplay = $startDate->format('D d-M-y');
 
             $expectedTimeInOut = $this->expectedTimeInOut($date);
 
@@ -217,6 +220,8 @@ class ReportsController extends Controller
                       'log_date' => $date
                     ])->first();
 
+                    $timeIn = $timeOut = null;
+
                     $late = $undertime = $totalLateUndertime = null;
 
                     if ($manualAttendanceLog) {
@@ -244,10 +249,11 @@ class ReportsController extends Controller
                         'name' => $user['name'],
                         'type' => $userType,
                         'date' => $date,
-                        'expected_time_in' => $expectedTimeInOut[$userType]['expectedTimeIn']->format('H:i:s'),
-                        'expected_time_out' => $expectedTimeInOut[$userType]['expectedTimeOut']->format('H:i:s'),
-                        'time_in' => ($manualAttendanceLog) ? $manualAttendanceLog->time_in : null,
-                        'time_out' => ($manualAttendanceLog) ? $manualAttendanceLog->time_out : null,
+                        'display_date' => $dateDisplay,
+                        'expected_time_in' => $expectedTimeInOut[$userType]['expectedTimeIn']->format('h:i:s A'),
+                        'expected_time_out' => $expectedTimeInOut[$userType]['expectedTimeOut']->format('h:i:s A'),
+                        'time_in' => ($timeIn) ? $timeIn->format('h:i:s A') : null,
+                        'time_out' => ($timeOut) ? $timeOut->format('h:i:s A') : null,
                         'late_in_minutes' => $late,
                         'undertime_in_minutes' => $undertime,
                         'total_late_undertime_in_minutes' => $totalLateUndertime,

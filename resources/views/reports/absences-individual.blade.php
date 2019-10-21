@@ -46,7 +46,7 @@
           </div>
           <div class="alert alert-block alert-info">
             <i class="fa fa-icon fa-info-circle"></i>
-            By default dates fall in weekend are excluded.
+            By default dates fall in <em>SUNDAY</em> are excluded.
           </div>
         </div>
         <div class="card-footer">
@@ -67,7 +67,6 @@
       <table class="table table-striped" style="width: 100%;">
         <thead>
           <tr>
-            <th scope="col">Type</th>
             <th scope="col">Date</th>
             <th scope="col">Expected Time-in</th>
             <th scope="col">Expected Time-out</th>
@@ -111,7 +110,7 @@
         var user = data[i];
         users.push({
           'id': user.biometric_id,
-          'text': user.biometric_id + ' ' + user.name
+          'text': user.biometric_id + ' ' + user.name  + ' (' + user.type + ')'
         });
       }
 
@@ -126,7 +125,10 @@
         var data = $(this).serialize();
         var filename = function () {
           var biometricUser = biometricUserSelect.select2('data')[0].text;
-          var period = $('[name="start_date"]').val() + ' to ' + $('[name="end_date"]').val();
+          var period = 'From ' +
+            $('[name="start_date"]').val() +
+            ' To ' + $('[name="end_date"]').val();
+
           return biometricUser + ' Absences - ' + period;
         };
 
@@ -134,15 +136,9 @@
           $(this).removeClass('is-invalid');
         });
 
-        $('div.search-result-loading', 'body').remove();
-        $('div.search-result').hide().before('<div class="search-result-loading"><h4><i class="fa fa-spin fa-spinner"></i> Loading...</h4></div>');
-
         if(dataTable) {
           dataTable.ajax.url("{{url('api/reports/absences')}}?token=" + token + '&' + data);
-          dataTable.ajax.reload(function () {
-            $('div.search-result').show();
-            $('div.search-result-loading', 'body').remove();
-          });
+          dataTable.ajax.reload();
         } else {
           $.fn.dataTable.ext.errMode = 'none';
           dataTable = $('table').DataTable({
@@ -181,8 +177,15 @@
             'ordering': false,
             'ajax': {
               'url': "{{url('api/reports/absences')}}?token=" + token + '&' + data,
+              'beforeSend': function () {
+                  $('div.search-result').hide();
+                  $('.loading').show();
+              },
+              'complete': function () {
+                  $('div.search-result').show();
+                  $('.loading').hide();
+              },
               'error': function (xhr) {
-                $('div.search-result-loading', 'body').remove();
                 var data = xhr.responseJSON;
                 if (data) {
                   var errors = data.errors;
@@ -194,22 +197,19 @@
                       .text(errors[key][0]);
                   }
                 }
+                $('div.search-result').hide();
+                $('.loading').hide();
               }
             },
-            'initComplete': function () {
-              $('div.search-result').show();
-              $('div.search-result-loading', 'body').remove();
-            },
             'columns': [
-              { 'data': 'type' },
-              { 'data': 'date' },
+              { 'data': 'display_date' },
               { 'data': 'expected_time_in' },
               { 'data': 'expected_time_out' },
               { 'data': 'time_in' },
               { 'data': 'time_out' },
-              { 'data': 'late_in_minutes' },
-              { 'data': 'undertime_in_minutes' },
-              { 'data': 'total_late_undertime_in_minutes' },
+              { 'data': 'late_in_minutes', 'className': 'text-right' },
+              { 'data': 'undertime_in_minutes', 'className': 'text-right' },
+              { 'data': 'total_late_undertime_in_minutes', 'className': 'text-right' },
               { 'data': 'reason' },
               {
                 'data': null,

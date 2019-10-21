@@ -14,7 +14,8 @@
         <h1 class="text-center">
           <i class="fa fa-file-text"></i>
           <i class="fa fa-users"></i><br>
-          Late & Under Time (Group)
+          Late & Under Time<br>
+          (Group)
         </h1>
         <hr class="my-4">
         <p class="lead text-center">
@@ -29,7 +30,8 @@
         <h1 class="text-center">
           <i class="fa fa-file-text"></i>
           <i class="fa fa-user"></i><br>
-          Late & Under Time (Individual)
+          Late & Under Time<br>
+          (Individual)
         </h1>
         <hr class="my-4">
         <p class="lead text-center">

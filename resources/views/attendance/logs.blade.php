@@ -37,7 +37,7 @@
                 <label>End Date</label>
                 <input type="date" class="form-control" name="end_date">
               </div>
-            </div>  
+            </div>
           </div>
         </div>
         <div class="card-footer">
@@ -82,6 +82,7 @@
 
     searchFiltersForm.submit(function(e) {
       e.preventDefault();
+
       var data = $(this).serialize();
       if(dataTable) {
         dataTable.ajax.url("{{url('api/biometric/attendance-logs')}}?token=" + token + '&' + data);
@@ -89,7 +90,15 @@
       } else {
         dataTable = $('table').DataTable({
           'searching': false,
-          'ajax': "{{url('api/biometric/attendance-logs')}}?token=" + token + '&' + data,
+          'ajax': {
+              'url': "{{url('api/biometric/attendance-logs')}}?token=" + token + '&' + data,
+              'beforeSend': function () {
+                  $('.loading').show();
+              },
+              'complete': function () {
+                  $('.loading').hide();
+              }
+          },
           'columns': [
             { 'data': 'biometric_id' },
             { 'data': 'biometric_name' },

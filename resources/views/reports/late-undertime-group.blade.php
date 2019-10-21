@@ -76,10 +76,10 @@
             <th></th>
             <th></th>
             <th></th>
-            <th></th>
-            <th></th>
-            <th></th>
-            <th style="text-align: right;">Total (min.):</th>
+            <th style="text-align: right;">Total:</th>
+            <th style="text-align: right;"></th>
+            <th style="text-align: right;"></th>
+            <th style="text-align: right;"></th>
             <th style="text-align: right;"></th>
             <th></th>
             <th></th>
@@ -110,7 +110,11 @@
 
       var data = $(this).serialize();
       var filename = function () {
-        var period = $('[name="start_date"]').val() + ' to ' + $('[name="end_date"]').val();
+        var period = 'From ' +
+            $('[name="start_date"]').val() +
+            ' To ' +
+            $('[name="end_date"]').val();
+
         return 'Late And Under Time - ' + period;
       };
 
@@ -118,15 +122,9 @@
         $(this).removeClass('is-invalid');
       });
 
-      $('div.search-result-loading', 'body').remove();
-      $('div.search-result').hide().before('<div class="search-result-loading"><h4><i class="fa fa-spin fa-spinner"></i> Loading...</h4></div>');
-
       if(dataTable) {
         dataTable.ajax.url("{{url('api/reports/late-undertime')}}?token=" + token + '&' +data);
-        dataTable.ajax.reload(function () {
-          $('div.search-result').show();
-          $('div.search-result-loading', 'body').remove();
-        });
+        dataTable.ajax.reload();
       } else {
         $.fn.dataTable.ext.errMode = 'none';
         dataTable = $('table').DataTable({
@@ -157,7 +155,9 @@
               filename: function() {
                 return filename();
               },
-              footer: true
+              footer: true,
+              orientation: 'landscape',
+              pageSize: 'legal'
             }
           ],
           'paging': false,
@@ -165,8 +165,15 @@
           'ordering': false,
           'ajax': {
             'url': "{{url('api/reports/late-undertime')}}?token=" + token + '&' + data,
+            'beforeSend': function () {
+                $('div.search-result').hide();
+                $('.loading').show();
+            },
+            'complete': function () {
+                $('div.search-result').show();
+                $('.loading').hide();
+            },
             'error': function (xhr) {
-              $('div.search-result-loading', 'body').remove();
               var data = xhr.responseJSON;
               if (data) {
                 var errors = data.errors;
@@ -178,25 +185,23 @@
                     .text(errors[key][0]);
                 }
               }
+              $('div.search-result').hide();
+              $('.loading').hide();
             }
-          },
-          'initComplete': function () {
-            $('div.search-result').show();
-            $('div.search-result-loading', 'body').remove();
           },
           'columns': [
             { 'data': 'biometric_id' },
             { 'data': 'name' },
             { 'data': 'type' },
-            { 'data': 'date' },
+            { 'data': 'display_date' },
             { 'data': 'expected_time_in' },
             { 'data': 'expected_time_out' },
             { 'data': 'time_in' },
             { 'data': 'time_out' },
-            { 'data': 'late_in_minutes' },
-            { 'data': 'undertime_in_minutes' },
-            { 'data': 'adjustment_in_minutes' },
-            { 'data': 'total_late_undertime_in_minutes' },
+            { 'data': 'late_in_minutes', 'className': 'text-right' },
+            { 'data': 'undertime_in_minutes', 'className': 'text-right' },
+            { 'data': 'adjustment_in_minutes', 'className': 'text-right' },
+            { 'data': 'total_late_undertime_in_minutes', 'className': 'text-right' },
             { 'data': 'reason' },
             {
               'data': null,
@@ -231,8 +236,32 @@
                         i : 0;
             };
 
-            // Total over all pages
-            total = api
+            // Total late over all pages
+            totalLate = api
+                .column( 8 )
+                .data()
+                .reduce( function (a, b) {
+                    return intVal(a) + intVal(b);
+                }, 0 );
+
+            // Total under time over all pages
+            totalUndertime = api
+                .column( 9 )
+                .data()
+                .reduce( function (a, b) {
+                    return intVal(a) + intVal(b);
+                }, 0 );
+
+            // Total adjustment over all pages
+            totalAdjustment = api
+                .column( 10 )
+                .data()
+                .reduce( function (a, b) {
+                    return intVal(a) + intVal(b);
+                }, 0 );
+
+            // Total late / undertime over all pages
+            totalLateUndertime = api
                 .column( 11 )
                 .data()
                 .reduce( function (a, b) {
@@ -240,7 +269,10 @@
                 }, 0 );
 
             // Update footer
-            $( api.column( 11 ).footer() ).html( total.toFixed(2) );
+            $( api.column( 8 ).footer() ).html( totalLate.toFixed(2) );
+            $( api.column( 9 ).footer() ).html( totalUndertime.toFixed(2) );
+            $( api.column( 10 ).footer() ).html( totalAdjustment.toFixed(2) );
+            $( api.column( 11 ).footer() ).html( totalLateUndertime.toFixed(2) );
           }
         });
       }
