@@ -32,6 +32,7 @@ class GeneralDatabaseSeeder extends Seeder
             $type->save();
           }*/
           $type->created_at = $type->updated_at = '2019-01-01 00:00:00';
+          $type->save();
         });
     }
 }
