@@ -15,11 +15,6 @@ class BiometricAttendanceController extends Controller
 
     private $zk = null;
 
-    public function __construct()
-    {
-        $this->zk = new ZKLibrary(env('DEVICE_IP'), env('DEVICE_PORT'));
-    }
-
     /**
      * Display a listing of the resource.
      *
@@ -29,36 +24,38 @@ class BiometricAttendanceController extends Controller
     {
         $users = $this->api->get('biometric/users');
         $users = $users['data'];
-        $keys = [];
 
-        $this->zk->connect();
+        if (env('DEVICE_ENABLED')) {
+            $this->zk = new ZKLibrary(env('DEVICE_IP'), env('DEVICE_PORT'));
+            $this->zk->connect();
 
-        $logs = $this->zk->getAttendance();
-        foreach ($logs as $log) {
-            $biometricId = $log['biometric_id'];
-            $filteredUser = array_filter($users, function ($user) use ($biometricId) {
-                return $user['biometric_id'] == $biometricId;
-            });
-            $user = array_pop($filteredUser);
+            $logs = $this->zk->getAttendance();
+            foreach ($logs as $log) {
+                $biometricId = $log['biometric_id'];
+                $filteredUser = array_filter($users, function ($user) use ($biometricId) {
+                    return $user['biometric_id'] == $biometricId;
+                });
+                $user = array_pop($filteredUser);
 
-            if ($user) {
-              AttendanceLog::where([
-                'biometric_id' => $log['biometric_id'],
-                'biometric_timestamp' => $log['timestamp']
-              ])->delete();
+                if ($user) {
+                    AttendanceLog::where([
+                    'biometric_id' => $log['biometric_id'],
+                    'biometric_timestamp' => $log['timestamp']
+                  ])->delete();
 
-              AttendanceLog::create([
-                'biometric_id' => $log['biometric_id'],
-                'biometric_name' => $user['name'],
-                'biometric_timestamp' => $log['timestamp']
-              ]);
+                    AttendanceLog::create([
+                    'biometric_id' => $log['biometric_id'],
+                    'biometric_name' => $user['name'],
+                    'biometric_timestamp' => $log['timestamp']
+                  ]);
+                }
             }
+
+            $this->zk->clearAttendance();
+            $this->zk->disconnect();
         }
 
-        $this->zk->clearAttendance();
-
-        $this->zk->disconnect();
-
+        // filtering parameters
         $biometricId = $request->input('biometric_id');
         $name = $request->input('name');
         $startDate = Carbon::createFromFormat('Y-m-d', $request->input('start_date'))

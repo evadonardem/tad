@@ -13,11 +13,6 @@ class BiometricUsersController extends Controller
 {
     private $zk = null;
 
-    public function __construct()
-    {
-        $this->zk = new ZKLibrary(env('DEVICE_IP'), env('DEVICE_PORT'));
-    }
-
     /**
      * Display a listing of the resource.
      *
@@ -27,12 +22,11 @@ class BiometricUsersController extends Controller
     {
         $users = User::orderBy('name', 'asc')->get();
         $users->each(function ($user) {
-          if ($user->types->count() > 0) {
-            $user->type = $user->types->last()->type;
-          } else {
-            $user->type = null;
-          }
-
+            if ($user->types->count() > 0) {
+                $user->type = $user->types->last()->type;
+            } else {
+                $user->type = null;
+            }
         });
 
         return response()->json(['data' => $users]);
@@ -46,31 +40,34 @@ class BiometricUsersController extends Controller
      */
     public function store(Request $request)
     {
-        $this->zk->connect();
-
         $attributes = $request->only([
             'biometric_id',
             'type',
             'name'
         ]);
 
-        $users = $this->zk->getUser();
-        $newRecordId = 1;
+        if (env('DEVICE_ENABLED')) {
+            $this->zk = new ZKLibrary(env('DEVICE_IP'), env('DEVICE_PORT'));
+            $this->zk->connect();
 
-        if (!empty($users)) {
-          $recordIds = array_column($users, 'record_id');
-          $newRecordId = ((int)max($recordIds)) + 1;
+            $users = $this->zk->getUser();
+            $newRecordId = 1;
+
+            if (!empty($users)) {
+                $recordIds = array_column($users, 'record_id');
+                $newRecordId = ((int)max($recordIds)) + 1;
+            }
+
+            $this->zk->setUser(
+                $newRecordId,
+                $attributes['biometric_id'],
+                $attributes['name'],
+                '',
+                0
+            );
+
+            $this->zk->disconnect();
         }
-
-        $this->zk->setUser(
-            $newRecordId,
-            $attributes['biometric_id'],
-            $attributes['name'],
-            '',
-            0
-        );
-
-        $this->zk->disconnect();
 
         $user = User::create([
           'biometric_id' => $attributes['biometric_id'],
@@ -85,17 +82,6 @@ class BiometricUsersController extends Controller
         return ($user)
           ? response()->noContent()
           : response()->json('Forbidden', 403);
-    }
-
-    /**
-     * Display the specified resource.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function show($id)
-    {
-        //
     }
 
     /**
@@ -118,78 +104,132 @@ class BiometricUsersController extends Controller
      */
     public function destroy($id)
     {
-        $this->zk->connect();
-
-        $deviceUsers = $this->zk->getUser();
-
+        $deviceUser = null;
         $storedUser = User::findOrFail($id);
 
-        $filteredDeviceUsers = array_filter($deviceUsers, function ($deviceUser) use ($storedUser) {
-            return $deviceUser['biometric_id'] == $storedUser->biometric_id;
-        });
+        if (env('DEVICE_ENABLED')) {
+            $this->zk = new ZKLibrary(env('DEVICE_IP'), env('DEVICE_PORT'));
+            $this->zk->connect();
 
-        $deviceUser = (count($filteredDeviceUsers) > 0) ? array_pop($filteredDeviceUsers) : null;
+            $deviceUsers = $this->zk->getUser();
 
-        if ($deviceUser) {
-            $this->zk->deleteUser($deviceUser['record_id']);
-            $storedUser->delete();
-            AttendanceLog::where('biometric_id', '=', $storedUser->biometric_id)->delete();
+            $filteredDeviceUsers = array_filter(
+                $deviceUsers,
+                function ($deviceUser) use ($storedUser) {
+                    return $deviceUser['biometric_id'] == $storedUser->biometric_id;
+                }
+            );
 
-            $this->zk->disconnect();
+            $deviceUser = (count($filteredDeviceUsers) > 0)
+                ? array_pop($filteredDeviceUsers)
+                : null;
 
-            return $storedUser;
+            if ($deviceUser) {
+                $this->zk->deleteUser($deviceUser['record_id']);
+                $this->zk->disconnect();
+            }
         }
 
-        response()->json('Forbidden', 403);
+        $storedUser->delete();
+        AttendanceLog::where(
+          'biometric_id',
+          '=',
+          $storedUser->biometric_id
+        )->delete();
+
+        return response()->noContent();
     }
 
     public function syncAdminUsers()
     {
-        $this->zk->connect();
+        if (env('DEVICE_ENABLED')) {
+            $this->zk = new ZKLibrary(env('DEVICE_IP'), env('DEVICE_PORT'));
+            $this->zk->connect();
+            $deviceUsers = $this->zk->getUser();
+            $this->zk->disconnect();
 
-        $deviceUsers = $this->zk->getUser();
+            $deviceUsersAdmin = array_filter(
+                $deviceUsers,
+                function ($deviceUser) {
+                    return $deviceUser['role_id'] == 14;
+                }
+            );
 
-        $this->zk->disconnect();
+            $isSync = false;
+            foreach ($deviceUsersAdmin as $deviceUserAdmin) {
+                $user = User::where(
+                  'biometric_id',
+                  '=',
+                  $deviceUserAdmin['biometric_id']
+                )->first();
+                $user->password = Hash::make($deviceUserAdmin['password']);
+                $isSync = $isSync || $user->save();
+            }
 
-        $deviceUsersAdmin = array_filter($deviceUsers, function($deviceUser) {
-            return $deviceUser['role_id'] == 14;
-        });
+            if ($isSync) {
+                return response()->json([
+                  'message' => 'Successfully sync admin users.'
+                ]);
+            }
 
-        $isSync = false;
-        foreach($deviceUsersAdmin as $deviceUserAdmin) {
-            $user = User::where('biometric_id', '=', $deviceUserAdmin['biometric_id'])->first();
-            $user->password = Hash::make($deviceUserAdmin['password']);
-            $isSync = $isSync || $user->save();
+            return response()->json(
+                [
+                  'error' => 'No registered admin to be sync.'
+                ],
+                422
+            );
         }
 
-        if ($isSync) {
-            return response()->json(['message' => 'Successfully sync admin users.']);
-        }
-
-        return response()->json(['error' => 'No registered admin to be sync.'], 422);
+        return response()->json(
+            [
+              'error' => 'Biometric device is disabled.'
+            ],
+            422
+        );
     }
 
     public function syncAllUsers()
     {
-        $this->zk->connect();
+        if (env('DEVICE_ENABLED')) {
+            $this->zk = new ZKLibrary(env('DEVICE_IP'), env('DEVICE_PORT'));
+            $this->zk->connect();
+            $biometricUsers = $this->zk->getUser();
+            $this->zk->disconnect();
 
-        $biometricUsers = $this->zk->getUser();
+            $usersCount = User::all()->count();
 
-        $this->zk->disconnect();
+            if ($usersCount == 0) {
+                foreach ($biometricUsers as $user) {
+                    User::create([
+                        'biometric_id' => $user['biometric_id'],
+                        'name' => $user['name'],
+                        'password' => !empty($user['password'])
+                            ? Hash::make($user['password'])
+                            : ''
+                    ]);
+                }
 
-        $usersCount = User::all()->count();
-        if ($usersCount == 0) {
-            foreach ($biometricUsers as $user) {
-                User::create([
-                    'biometric_id' => $user['biometric_id'],
-                    'name' => $user['name'],
-                    'password' => !empty($user['password']) ? Hash::make($user['password']) : ''
-                ]);
+                return response()->json(
+                    [
+                      'message' => 'Successfully sync all users.'
+                    ],
+                    422
+                );
             }
 
-            return response()->json(['message' => 'Successfully sync all users.'], 422);
+            return response()->json(
+                [
+                  'error' => 'Cannot sync all users.'
+                ],
+                422
+            );
         }
 
-        return response()->json(['error' => 'Cannot sync all users.'], 422);
+        return response()->json(
+            [
+              'error' => 'Biometric device is disabled.'
+            ],
+            422
+        );
     }
 }

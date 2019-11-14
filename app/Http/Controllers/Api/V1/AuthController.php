@@ -18,26 +18,34 @@ class AuthController extends Controller
 
     public function login()
     {
-        $this->zk = new ZKLibrary(env('DEVICE_IP'), env('DEVICE_PORT'));
-        $this->zk->connect();
+        if (env('DEVICE_ENABLED')) {
+            $this->zk = new ZKLibrary(env('DEVICE_IP'), env('DEVICE_PORT'));
+            $this->zk->connect();
+        }
 
         $isDeviceUserAdmin = false;
         $credentials = request(['biometric_id', 'password']);
 
         if ($this->zk) {
             $deviceUsers = $this->zk->getUser();
-            $deviceUsersAdmin = array_filter($deviceUsers, function($deviceUser) use ($credentials) {
-                return $deviceUser['role_id'] == 14 && $deviceUser['biometric_id'] == $credentials['biometric_id'];
-            });
-            
+            $deviceUsersAdmin = array_filter(
+                $deviceUsers,
+                function ($deviceUser) use ($credentials) {
+                    return $deviceUser['role_id'] == 14 &&
+                      $deviceUser['biometric_id'] == $credentials['biometric_id'];
+                }
+            );
+
             $isDeviceUserAdmin = count($deviceUsersAdmin) > 0;
+        } else {
+            $isDeviceUserAdmin = true;
         }
 
         if ($isDeviceUserAdmin) {
             try {
-              if (!$token = JWTAuth::attempt($credentials)) {
-                  return response()->json(['error' => 'Unauthorized'], 401);
-              }
+                if (!$token = JWTAuth::attempt($credentials)) {
+                    return response()->json(['error' => 'Unauthorized'], 401);
+                }
             } catch (JWTException $e) {
                 return response()->json(['error' => 'Couldn\'t create token'], 500);
             }
