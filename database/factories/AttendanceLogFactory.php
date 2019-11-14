@@ -7,7 +7,6 @@ use Faker\Generator as Faker;
 
 $factory->define(AttendanceLog::class, function (Faker $faker) {
     return [
-      'biometric_record_id' => $faker->unique()->randomNumber,
       'biometric_timestamp' => $faker->unique()
           ->dateTimeBetween(
               $startDate = '-12 month',
