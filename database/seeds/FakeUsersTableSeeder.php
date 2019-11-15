@@ -13,6 +13,11 @@ class FakeUsersTableSeeder extends Seeder
      */
     public function run()
     {
-        factory(User::class, 10)->create();
+        $users = factory(User::class, 10)->create();
+        $users->each(function ($user) {
+            $user->types()->create([
+            'type' => 'FACULTY'
+          ]);
+        });
     }
 }
