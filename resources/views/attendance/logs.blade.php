@@ -16,16 +16,15 @@
           <div class="row">
             <div class="col">
               <div class="form-group">
-                <label>Biometric ID</label>
-                <input type="text" class="form-control" name="biometric_id">
+                <label for="">Biometric User</label>
+                <select class="form-control" name="biometric_id">
+                  <option></option>
+                </select>
+                <div class="invalid-feedback"></div>
               </div>
             </div>
-            <div class="col">
-              <div class="form-group">
-                <label>Name</label>
-                <input type="text" class="form-control" name="name">
-              </div>
-            </div>
+          </div>
+          <div class="row">
             <div class="col">
               <div class="form-group">
                 <label>Start Date</label>
@@ -77,41 +76,61 @@
 <script type="text/javascript">
   $(function() {
     var token = $.cookie('token');
+    var biometricUserSelect = $('select[name="biometric_id"]');
     var dataTable = null;
     var searchFiltersForm = $('#searchFiltersFrm');
 
-    searchFiltersForm.submit(function(e) {
-      e.preventDefault();
+    $.get("{{url('api/biometric/users')}}?token=" + token, function(response) {
+      var data = response.data;
+      var users = [];
 
-      var data = $(this).serialize();
-      if(dataTable) {
-        dataTable.ajax.url("{{url('api/biometric/attendance-logs')}}?token=" + token + '&' + data);
-        dataTable.ajax.reload();
-      } else {
-        dataTable = $('table').DataTable({
-          'searching': false,
-          'ajax': {
-              'url': "{{url('api/biometric/attendance-logs')}}?token=" + token + '&' + data,
-              'beforeSend': function () {
-                  $('.loading').show();
-              },
-              'complete': function () {
-                  $('.loading').hide();
-              }
-          },
-          'columns': [
-            { 'data': 'biometric_id' },
-            { 'data': 'biometric_name' },
-            { 'data': 'biometric_timestamp' }
-          ],
-          'columnDefs': [
-            { 'orderable': false, 'targets': [0, 1] }
-          ],
-          'order': [[2, 'asc']]
+      for(i in data) {
+        var user = data[i];
+        users.push({
+          'id': user.biometric_id,
+          'text': user.biometric_id + ' ' + user.name  + ' (' + user.type + ')'
         });
       }
-    });
 
+      biometricUserSelect.select2({
+        allowClear: true,
+        data: users,
+        placeholder: 'Select biometric user'
+      });
+
+      searchFiltersForm.submit(function(e) {
+        e.preventDefault();
+
+        var data = $(this).serialize();
+        if(dataTable) {
+          dataTable.ajax.url("{{url('api/biometric/attendance-logs')}}?token=" + token + '&' + data);
+          dataTable.ajax.reload();
+        } else {
+          dataTable = $('table').DataTable({
+            'searching': false,
+            'ajax': {
+                'url': "{{url('api/biometric/attendance-logs')}}?token=" + token + '&' + data,
+                'beforeSend': function () {
+                    $('.loading').show();
+                },
+                'complete': function () {
+                    $('.loading').hide();
+                }
+            },
+            'columns': [
+              { 'data': 'biometric_id' },
+              { 'data': 'biometric_name' },
+              { 'data': 'biometric_timestamp' }
+            ],
+            'columnDefs': [
+              { 'orderable': false, 'targets': [0, 1] }
+            ],
+            'order': [[2, 'asc']]
+          });
+        }
+      });
+
+    });
   });
 </script>
 @endsection

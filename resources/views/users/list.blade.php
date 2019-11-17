@@ -8,6 +8,12 @@
 <hr class="my-4">
 
 <div class="row">
+
+</div>
+
+<hr class="my-4">
+
+<div class="row">
   <div class="col-md-8">
     <div class="card">
       <div class="card-body">

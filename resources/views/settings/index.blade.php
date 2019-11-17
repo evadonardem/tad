@@ -64,6 +64,13 @@
     </form>
   </div>
 </div>
+
+<hr class="my-4">
+
+<h2><i class="fa fa-users"></i> User Types</h2>
+
+<hr class="my-4">
+
 @endsection
 
 @section('custom-scripts')
