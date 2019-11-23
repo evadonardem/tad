@@ -21,7 +21,7 @@
           <thead>
             <tr>
               <th scope="col">Biometric ID</th>
-              <th scope="col">Type</th>
+              <th scope="col">Current Role</th>
               <th scope="col">Name</th>
               <th></th>
             </tr>
@@ -68,7 +68,7 @@
       'ajax': "{{url('api/biometric/users')}}?token=" + token,
       'columns': [
         { 'data': 'biometric_id' },
-        { 'data': 'type' },
+        { 'data': 'role' },
         { 'data': 'name' },
         {
           'data': null,

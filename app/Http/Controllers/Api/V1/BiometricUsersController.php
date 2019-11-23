@@ -22,10 +22,10 @@ class BiometricUsersController extends Controller
     {
         $users = User::orderBy('name', 'asc')->get();
         $users->each(function ($user) {
-            if ($user->types->count() > 0) {
-                $user->type = $user->types->last()->type;
+            if ($user->roles->count() > 0) {
+                $user->role = $user->roles->last()->id;
             } else {
-                $user->type = null;
+                $user->role = null;
             }
         });
 
