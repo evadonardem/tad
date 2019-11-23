@@ -6,7 +6,7 @@ use Illuminate\Notifications\Notifiable;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Tymon\JWTAuth\Contracts\JWTSubject;
-use App\Models\UserType;
+use App\Models\Role;
 use App\Models\AttendanceLog;
 
 class User extends Authenticatable implements JWTSubject
@@ -31,14 +31,19 @@ class User extends Authenticatable implements JWTSubject
         'password',
     ];
 
-    public function types()
+    public function roles()
     {
-        return $this->hasMany(UserType::class, 'user_id', 'id');
+        return $this->belongsToMany(
+          Role::class,
+          'user_roles',
+          'user_id',
+          'role_id'
+        )->withTimestamps();
     }
 
     public function attendanceLogs()
     {
-      return $this->hasMany(AttendanceLog::class, 'biometric_id', 'biometric_id');
+        return $this->hasMany(AttendanceLog::class, 'biometric_id', 'biometric_id');
     }
 
     /**

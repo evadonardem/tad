@@ -4,7 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class UserType extends Model
+class UserRole extends Model
 {
-    protected $fillable = ['type'];
+    protected $fillable = ['role_id'];
 }
