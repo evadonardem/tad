@@ -46,11 +46,8 @@
             <input type="text" class="form-control" id="name" name="name" value="" maxlength="25">
           </div>
           <div class="form-group">
-            <label for="type">Type:</label>
-            <select class="form-control" id="type" name="type">
-              <option value="FACULTY">Faculty</option>
-              <option value="ADMIN">Admin</option>
-            </select>
+            <label for="type">Role:</label>
+            <select class="form-control" id="role" name="role"></select>
           </div>
           <button type="button" class="btn btn-primary btn-block" id="registerBtn" name="button">Register</button>
         </div>
@@ -64,6 +61,7 @@
 <script type="text/javascript">
   $(function() {
     var token = $.cookie('token');
+    var userRoleSelect = $('select[name="role"]');
     var dataTable = $('table').DataTable({
       'ajax': "{{url('api/biometric/users')}}?token=" + token,
       'columns': [
@@ -79,6 +77,25 @@
           }
         }
       ]
+    });
+
+    $.get("{{url('api/settings/roles')}}?token=" + token, function(response) {
+      var data = response.data;
+      var users = [];
+
+      for(i in data) {
+        var role = data[i];
+        users.push({
+          'id': role.id,
+          'text': role.id
+        });
+      }
+
+      userRoleSelect.select2({
+        data: users,
+        placeholder: 'Select user role'
+      });
+
     });
 
     $(document).on('click', '.delete', function (e) {

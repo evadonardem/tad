@@ -42,7 +42,7 @@ class BiometricUsersController extends Controller
     {
         $attributes = $request->only([
             'biometric_id',
-            'type',
+            'role',
             'name'
         ]);
 
@@ -75,9 +75,7 @@ class BiometricUsersController extends Controller
           'password' => ''
         ]);
 
-        $user->types()->create([
-          'type' => $attributes['type']
-        ]);
+        $user->roles()->attach($attributes['role']);
 
         return ($user)
           ? response()->noContent()
