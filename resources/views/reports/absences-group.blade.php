@@ -18,6 +18,17 @@
         <h5 class="card-header">Search Filters</h5>
         <div class="card-body">
           <div class="row">
+            <div class="col-md-6">
+              <div class="form-group">
+                <label>Role</label>
+                <select class="form-control" name="role_id">
+                  <option value=""></option>
+                </select>
+                <div class="invalid-feedback"></div>
+              </div>
+            </div>
+          </div>
+          <div class="row">
             <div class="col">
               <div class="form-group">
                 <label>Start Date</label>
@@ -85,6 +96,24 @@
     var token = $.cookie('token');
     var dataTable = null;
     var searchFiltersForm = $('#searchFiltersFrm');
+    var userRoleSelect = $('select[name="role_id"]');
+
+    $.get("{{url('api/settings/roles')}}?token=" + token, function(response) {
+      var data = response.data;
+      var users = [];
+      for(i in data) {
+        var role = data[i];
+        users.push({
+          'id': role.id,
+          'text': role.id
+        });
+      }
+      userRoleSelect.select2({
+        allowClear: true,
+        data: users,
+        placeholder: 'Select Role'
+      });
+    });
 
     $('select, input', searchFiltersForm).on('change', function (e) {
       if (dataTable) {

@@ -43,5 +43,16 @@ class GeneralDatabaseSeeder extends Seeder
                 ]);
             }
         });
+
+        $commonTimeShift = CommonTimeShift::whereNull('role_id')
+            ->whereNull('effectivity_date')
+            ->first();
+
+        if (!$commonTimeShift) {
+            CommonTimeShift::create([
+              'expected_time_in' => '07:30',
+              'expected_time_out' => '16:30'
+            ]);
+        }
     }
 }

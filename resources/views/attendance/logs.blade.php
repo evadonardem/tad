@@ -88,7 +88,7 @@
         var user = data[i];
         users.push({
           'id': user.biometric_id,
-          'text': user.biometric_id + ' ' + user.name  + ' (' + user.type + ')'
+          'text': user.biometric_id + ' ' + user.name  + ' (' + user.role + ')'
         });
       }
 

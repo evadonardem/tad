@@ -18,7 +18,7 @@
         <table class="table table-striped">
           <thead>
             <tr>
-              <th scope="col">Type</th>
+              <th scope="col">Role</th>
               <th scope="col">Effectivity Date</th>
               <th scope="col">Expected Time-in</th>
               <th scope="col">Expected Time-out</th>
@@ -52,11 +52,8 @@
             <div class="invalid-feedback"></div>
           </div>
           <div class="form-group">
-            <label for="type">Type:</label>
-            <select class="form-control" id="type" name="type">
-              <option value="FACULTY">Faculty</option>
-              <option value="ADMIN">Admin</option>
-            </select>
+            <label for="role">Role:</label>
+            <select class="form-control" id="role_id" name="role_id"></select>
           </div>
           <button type="button" class="btn btn-primary btn-block" id="registerBtn" name="button">Register</button>
         </div>
@@ -82,7 +79,7 @@ $(function() {
       'ordering': false,
       'searching': false,
       'columns': [
-        { 'data': 'type' },
+        { 'data': 'role_id' },
         { 'data': 'effectivity_date' },
         { 'data': 'expected_time_in' },
         { 'data': 'expected_time_out' },
@@ -97,6 +94,23 @@ $(function() {
 			}
 		},
       ]
+    });
+
+    var userRoleSelect = $('select[name="role_id"]');
+    $.get("{{url('api/settings/roles')}}?token=" + token, function(response) {
+      var data = response.data;
+      var users = [];
+      for(i in data) {
+        var role = data[i];
+        users.push({
+          'id': role.id,
+          'text': role.id
+        });
+      }
+      userRoleSelect.select2({
+        data: users,
+        placeholder: 'Select user role'
+      });
     });
 
     $(document).on('click', '.delete', function (e) {

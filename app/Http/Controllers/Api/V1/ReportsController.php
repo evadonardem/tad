@@ -12,6 +12,7 @@ use App\User;
 use App\Models\AttendanceLogAdjustment;
 use App\Models\CommonTimeShift;
 use App\Models\ManualAttendanceLog;
+use App\Models\Role;
 
 class ReportsController extends Controller
 {
@@ -35,9 +36,15 @@ class ReportsController extends Controller
         $users = $users['data'];
 
         if ($biometricId) {
-          $users = array_filter($users, function ($user) use ($biometricId) {
-            return $user['biometric_id'] == $biometricId;
-          });
+            $users = array_filter($users, function ($user) use ($biometricId) {
+                return $user['biometric_id'] == $biometricId;
+            });
+        }
+
+        if ($roleId = $request->input('role_id')) {
+            $users = array_filter($users, function ($user) use ($roleId) {
+                return $user['role'] == $roleId;
+            });
         }
 
         $queryParams = 'start_date=' . $startDate->format('Y-m-d') . '&end_date=' . $endDate->format('Y-m-d');
@@ -48,96 +55,98 @@ class ReportsController extends Controller
 
         $report = [];
 
-        while ($startDate <= $endDate) {
-            $date = $startDate->format('Y-m-d');
-            $dateDisplay = $startDate->format('D d-M-y');
+        if (!empty($users)) {
+            while ($startDate <= $endDate) {
+                $date = $startDate->format('Y-m-d');
+                $dateDisplay = $startDate->format('D d-M-y');
 
-            $expectedTimeInOut = $this->expectedTimeInOut($date);
+                $expectedTimeInOut = $this->expectedTimeInOut($date);
 
-            foreach ($users as $user) {
-                $logs = array_filter($attendanceLogs, function ($log) use ($date, $user) {
-                    $logDate = Carbon::createFromFormat('Y-m-d H:i:s', $log['biometric_timestamp'])->format('Y-m-d');
-                    return $log['biometric_id'] == $user['biometric_id'] && $logDate == $date;
-                });
+                foreach ($users as $user) {
+                    $logs = array_filter($attendanceLogs, function ($log) use ($date, $user) {
+                        $logDate = Carbon::createFromFormat('Y-m-d H:i:s', $log['biometric_timestamp'])->format('Y-m-d');
+                        return $log['biometric_id'] == $user['biometric_id'] && $logDate == $date;
+                    });
 
-                // only include users with time-in/out
-                if (count($logs)>0) {
-                    $logs = array_values($logs);
-                    $timeIn = Carbon::createFromFormat('Y-m-d H:i:s', $logs[0]['biometric_timestamp']);
+                    // only include users with time-in/out
+                    if (count($logs)>0) {
+                        $logs = array_values($logs);
+                        $timeIn = Carbon::createFromFormat('Y-m-d H:i:s', $logs[0]['biometric_timestamp']);
 
-                    // for time-out pick first log in the afternoon
-                    $timeOut = null;
-                    foreach ($logs as $log) {
-                        $logDate = Carbon::createFromFormat('Y-m-d H:i:s', $log['biometric_timestamp']);
-                        if ($logDate->format('A') == 'PM') {
-                            $timeOut = $logDate;
-                            break;
+                        // for time-out pick first log in the afternoon
+                        $timeOut = null;
+                        foreach ($logs as $log) {
+                            $logDate = Carbon::createFromFormat('Y-m-d H:i:s', $log['biometric_timestamp']);
+                            if ($logDate->format('A') == 'PM') {
+                                $timeOut = $logDate;
+                                break;
+                            }
                         }
+
+                        $timeOut = $timeOut ?: Carbon::createFromFormat('Y-m-d H:i:s', $logs[count($logs)-1]['biometric_timestamp']);
+
+                        // get user type base on time-in log date
+                        $userObj = User::find($user['id']);
+                        $userRole = $userObj->roles()
+                          ->where('user_roles.created_at', '<=', $timeIn->format('Y-m-d H:i:s'))
+                          ->orderBy('user_roles.created_at', 'desc')
+                          ->first();
+                        $userRole = $userRole->id;
+
+                        $timeInInMinutes = (((int)$timeIn->format('H')) * 60 * 60
+                          + ((int)$timeIn->format('i') * 60)
+                          + (int)$timeIn->format('s')) / 60;
+                        $timeOutInMinutes = (((int)$timeOut->format('H')) * 60 * 60
+                          + ((int)$timeOut->format('i') * 60)
+                          + (int)$timeOut->format('s')) / 60;
+
+                        $late = $timeInInMinutes - $expectedTimeInOut[$userRole]['expectedTimeInMinutes'];
+                        $late = number_format($late > 0 ? $late : 0, 2);
+
+                        $undertime = $expectedTimeInOut[$userRole]['expectedTimeOutMinutes'] - $timeOutInMinutes;
+                        $undertime = number_format($undertime > 0 ? $undertime : 0, 2);
+
+                        $adjustment = 0;
+                        $reason = '';
+                        $isAdjusted = false;
+
+                        $attendanceLogAdjustment = AttendanceLogAdjustment::where([
+                          'biometric_id' => $user['biometric_id'],
+                          'log_date' => $date
+                      ])->first();
+
+                        if ($attendanceLogAdjustment) {
+                            $adjustment = $attendanceLogAdjustment->adjustment_in_minutes;
+                            $reason = $attendanceLogAdjustment->reason;
+                            $isAdjusted = true;
+                        }
+
+                        $totalLateUndertime = number_format($late + $undertime - $adjustment, 2);
+
+                        $tmp = [
+                          'biometric_id' => $user['biometric_id'],
+                          'name' => $user['name'],
+                          'role_id' => $userRole,
+                          'date' => $date,
+                          'display_date' => $dateDisplay,
+                          'expected_time_in' => $expectedTimeInOut[$userRole]['expectedTimeIn']->format('h:i:s A'),
+                          'expected_time_out' => $expectedTimeInOut[$userRole]['expectedTimeOut']->format('h:i:s A'),
+                          'time_in' => $timeIn->format('h:i:s A'),
+                          'time_out' => $timeOut->format('h:i:s A'),
+                          'late_in_minutes' => $late,
+                          'undertime_in_minutes' => $undertime,
+                          'adjustment_in_minutes' => $adjustment,
+                          'total_late_undertime_in_minutes' => $totalLateUndertime,
+                          'reason' => $reason,
+                          'is_adjusted' => $isAdjusted
+                      ];
+
+                        $report[] = $tmp;
                     }
-
-                    $timeOut = $timeOut ?: Carbon::createFromFormat('Y-m-d H:i:s', $logs[count($logs)-1]['biometric_timestamp']);
-
-                    // get user type base on time-in log date
-                    $userObj = User::find($user['id']);
-                    $userType = $userObj->types()
-                        ->where('created_at', '<=', $timeIn->format('Y-m-d H:i:s'))
-                        ->orderBy('created_at', 'desc')
-                        ->first();
-                    $userType = $userType->type;
-
-                    $timeInInMinutes = (((int)$timeIn->format('H')) * 60 * 60
-                        + ((int)$timeIn->format('i') * 60)
-                        + (int)$timeIn->format('s')) / 60;
-                    $timeOutInMinutes = (((int)$timeOut->format('H')) * 60 * 60
-                        + ((int)$timeOut->format('i') * 60)
-                        + (int)$timeOut->format('s')) / 60;
-
-                    $late = $timeInInMinutes - $expectedTimeInOut[$userType]['expectedTimeInMinutes'];
-                    $late = number_format($late > 0 ? $late : 0, 2);
-
-                    $undertime = $expectedTimeInOut[$userType]['expectedTimeOutMinutes'] - $timeOutInMinutes;
-                    $undertime = number_format($undertime > 0 ? $undertime : 0, 2);
-
-                    $adjustment = 0;
-                    $reason = '';
-                    $isAdjusted = false;
-
-                    $attendanceLogAdjustment = AttendanceLogAdjustment::where([
-                        'biometric_id' => $user['biometric_id'],
-                        'log_date' => $date
-                    ])->first();
-
-                    if ($attendanceLogAdjustment) {
-                        $adjustment = $attendanceLogAdjustment->adjustment_in_minutes;
-                        $reason = $attendanceLogAdjustment->reason;
-                        $isAdjusted = true;
-                    }
-
-                    $totalLateUndertime = number_format($late + $undertime - $adjustment, 2);
-
-                    $tmp = [
-                        'biometric_id' => $user['biometric_id'],
-                        'name' => $user['name'],
-                        'type' => $userType,
-                        'date' => $date,
-                        'display_date' => $dateDisplay,
-                        'expected_time_in' => $expectedTimeInOut[$userType]['expectedTimeIn']->format('h:i:s A'),
-                        'expected_time_out' => $expectedTimeInOut[$userType]['expectedTimeOut']->format('h:i:s A'),
-                        'time_in' => $timeIn->format('h:i:s A'),
-                        'time_out' => $timeOut->format('h:i:s A'),
-                        'late_in_minutes' => $late,
-                        'undertime_in_minutes' => $undertime,
-                        'adjustment_in_minutes' => $adjustment,
-                        'total_late_undertime_in_minutes' => $totalLateUndertime,
-                        'reason' => $reason,
-                        'is_adjusted' => $isAdjusted
-                    ];
-
-                    $report[] = $tmp;
                 }
-            }
 
-            $startDate->addDay(1);
+                $startDate->addDay(1);
+            }
         }
 
         return response()->json(['data' => $report]);
@@ -161,9 +170,15 @@ class ReportsController extends Controller
         $users = $users['data'];
 
         if ($biometricId) {
-          $users = array_filter($users, function ($user) use ($biometricId) {
-            return $user['biometric_id'] == $biometricId;
-          });
+            $users = array_filter($users, function ($user) use ($biometricId) {
+                return $user['biometric_id'] == $biometricId;
+            });
+        }
+
+        if ($roleId = $request->input('role_id')) {
+            $users = array_filter($users, function ($user) use ($roleId) {
+                return $user['role'] == $roleId;
+            });
         }
 
         $queryParams = 'start_date=' . $startDate->format('Y-m-d') . '&end_date=' . $endDate->format('Y-m-d');
@@ -174,97 +189,98 @@ class ReportsController extends Controller
 
         $report = [];
 
-        while ($startDate <= $endDate) {
-
-            if (
-              $startDate >= Carbon::now() ||
-              $startDate->dayOfWeek == Carbon::SUNDAY
-            ) {
-              $startDate->addDay(1);
-              continue;
-            }
-
-            $date = $startDate->format('Y-m-d');
-            $dateDisplay = $startDate->format('D d-M-y');
-
-            $expectedTimeInOut = $this->expectedTimeInOut($date);
-
-            foreach ($users as $user) {
-                $logs = array_filter($attendanceLogs, function ($log) use ($date, $user) {
-                    $logDate = Carbon::createFromFormat('Y-m-d H:i:s', $log['biometric_timestamp'])->format('Y-m-d');
-                    return $log['biometric_id'] == $user['biometric_id'] && $logDate == $date;
-                });
-
-                // only include users with time-in/out
-                if (count($logs)==0) {
-                    $logs = array_values($logs);
-
-                    // get user type base on time-in log date
-                    $userObj = User::find($user['id']);
-                    $userType = $userObj->types()
-                        ->where('created_at', '<=', $startDate->format('Y-m-d H:i:s'))
-                        ->orderBy('created_at', 'desc')
-                        ->first();
-
-                    if (!$userType) {
-                      $userType = $userObj->types()
-                          ->orderBy('created_at', 'asc')
-                          ->first();
-                    }
-
-                    $userType = $userType->type;
-
-                    // check manual attendance log entry
-                    $manualAttendanceLog = ManualAttendanceLog::where([
-                      'biometric_id' => $user['biometric_id'],
-                      'log_date' => $date
-                    ])->first();
-
-                    $timeIn = $timeOut = null;
-
-                    $late = $undertime = $totalLateUndertime = null;
-
-                    if ($manualAttendanceLog) {
-                      $timeIn = Carbon::createFromFormat('Y-m-d H:i:s', $manualAttendanceLog->log_date . ' ' . $manualAttendanceLog->time_in);
-                      $timeOut = Carbon::createFromFormat('Y-m-d H:i:s', $manualAttendanceLog->log_date . ' ' . $manualAttendanceLog->time_out);
-
-                      $timeInInMinutes = (((int)$timeIn->format('H')) * 60 * 60
-                          + ((int)$timeIn->format('i') * 60)
-                          + (int)$timeIn->format('s')) / 60;
-                      $timeOutInMinutes = (((int)$timeOut->format('H')) * 60 * 60
-                          + ((int)$timeOut->format('i') * 60)
-                          + (int)$timeOut->format('s')) / 60;
-
-                      $late = $timeInInMinutes - $expectedTimeInOut[$userType]['expectedTimeInMinutes'];
-                      $late = number_format($late > 0 ? $late : 0, 2);
-
-                      $undertime = $expectedTimeInOut[$userType]['expectedTimeOutMinutes'] - $timeOutInMinutes;
-                      $undertime = number_format($undertime > 0 ? $undertime : 0, 2);
-
-                      $totalLateUndertime = number_format($late + $undertime, 2);
-                    }
-
-                    $tmp = [
-                        'biometric_id' => $user['biometric_id'],
-                        'name' => $user['name'],
-                        'type' => $userType,
-                        'date' => $date,
-                        'display_date' => $dateDisplay,
-                        'expected_time_in' => $expectedTimeInOut[$userType]['expectedTimeIn']->format('h:i:s A'),
-                        'expected_time_out' => $expectedTimeInOut[$userType]['expectedTimeOut']->format('h:i:s A'),
-                        'time_in' => ($timeIn) ? $timeIn->format('h:i:s A') : null,
-                        'time_out' => ($timeOut) ? $timeOut->format('h:i:s A') : null,
-                        'late_in_minutes' => $late,
-                        'undertime_in_minutes' => $undertime,
-                        'total_late_undertime_in_minutes' => $totalLateUndertime,
-                        'reason' => ($manualAttendanceLog) ? $manualAttendanceLog->reason : null
-                    ];
-
-                    $report[] = $tmp;
+        if (!empty($users)) {
+            while ($startDate <= $endDate) {
+                if (
+                  $startDate >= Carbon::now() ||
+                  $startDate->dayOfWeek == Carbon::SUNDAY
+                ) {
+                    $startDate->addDay(1);
+                    continue;
                 }
-            }
 
-            $startDate->addDay(1);
+                $date = $startDate->format('Y-m-d');
+                $dateDisplay = $startDate->format('D d-M-y');
+
+                $expectedTimeInOut = $this->expectedTimeInOut($date);
+
+                foreach ($users as $user) {
+                    $logs = array_filter($attendanceLogs, function ($log) use ($date, $user) {
+                        $logDate = Carbon::createFromFormat('Y-m-d H:i:s', $log['biometric_timestamp'])->format('Y-m-d');
+                        return $log['biometric_id'] == $user['biometric_id'] && $logDate == $date;
+                    });
+
+                    // only include users with time-in/out
+                    if (count($logs)==0) {
+                        $logs = array_values($logs);
+
+                        // get user type base on time-in log date
+                        $userObj = User::find($user['id']);
+                        $userRole = $userObj->roles()
+                          ->where('user_roles.created_at', '<=', $startDate->format('Y-m-d H:i:s'))
+                          ->orderBy('user_roles.created_at', 'desc')
+                          ->first();
+
+                        if (!$userRole) {
+                            $userRole = $userObj->roles()
+                            ->orderBy('user_roles.created_at', 'asc')
+                            ->first();
+                        }
+
+                        $userRole = $userRole->id;
+
+                        // check manual attendance log entry
+                        $manualAttendanceLog = ManualAttendanceLog::where([
+                        'biometric_id' => $user['biometric_id'],
+                        'log_date' => $date
+                      ])->first();
+
+                        $timeIn = $timeOut = null;
+
+                        $late = $undertime = $totalLateUndertime = null;
+
+                        if ($manualAttendanceLog) {
+                            $timeIn = Carbon::createFromFormat('Y-m-d H:i:s', $manualAttendanceLog->log_date . ' ' . $manualAttendanceLog->time_in);
+                            $timeOut = Carbon::createFromFormat('Y-m-d H:i:s', $manualAttendanceLog->log_date . ' ' . $manualAttendanceLog->time_out);
+
+                            $timeInInMinutes = (((int)$timeIn->format('H')) * 60 * 60
+                            + ((int)$timeIn->format('i') * 60)
+                            + (int)$timeIn->format('s')) / 60;
+                            $timeOutInMinutes = (((int)$timeOut->format('H')) * 60 * 60
+                            + ((int)$timeOut->format('i') * 60)
+                            + (int)$timeOut->format('s')) / 60;
+
+                            $late = $timeInInMinutes - $expectedTimeInOut[$userRole]['expectedTimeInMinutes'];
+                            $late = number_format($late > 0 ? $late : 0, 2);
+
+                            $undertime = $expectedTimeInOut[$userRole]['expectedTimeOutMinutes'] - $timeOutInMinutes;
+                            $undertime = number_format($undertime > 0 ? $undertime : 0, 2);
+
+                            $totalLateUndertime = number_format($late + $undertime, 2);
+                        }
+
+                        $tmp = [
+                          'biometric_id' => $user['biometric_id'],
+                          'name' => $user['name'],
+                          'role_id' => $userRole,
+                          'date' => $date,
+                          'display_date' => $dateDisplay,
+                          'expected_time_in' => $expectedTimeInOut[$userRole]['expectedTimeIn']->format('h:i:s A'),
+                          'expected_time_out' => $expectedTimeInOut[$userRole]['expectedTimeOut']->format('h:i:s A'),
+                          'time_in' => ($timeIn) ? $timeIn->format('h:i:s A') : null,
+                          'time_out' => ($timeOut) ? $timeOut->format('h:i:s A') : null,
+                          'late_in_minutes' => $late,
+                          'undertime_in_minutes' => $undertime,
+                          'total_late_undertime_in_minutes' => $totalLateUndertime,
+                          'reason' => ($manualAttendanceLog) ? $manualAttendanceLog->reason : null
+                      ];
+
+                        $report[] = $tmp;
+                    }
+                }
+
+                $startDate->addDay(1);
+            }
         }
 
         return response()->json(['data' => $report]);
@@ -272,49 +288,50 @@ class ReportsController extends Controller
 
     private function expectedTimeInOut($date)
     {
+        $roles = Role::all();
         $expectedTimeInOunt = [];
-        foreach (['FACULTY', 'ADMIN'] as $type) {
-          // fetch common time shift by date
-          $commonTimeShiftModel = resolve(CommonTimeShift::class);
-          $commonTimeShift = $commonTimeShiftModel
-              ->where('type', '=', $type)
+        foreach ($roles as $role) {
+            // fetch common time shift by date
+            $commonTimeShiftModel = resolve(CommonTimeShift::class);
+            $commonTimeShift = $commonTimeShiftModel
+              ->where('role_id', '=', $role->id)
               ->whereNotNull('effectivity_date')
               ->whereDate('effectivity_date', '<=', $date)
               ->orderBy('effectivity_date', 'desc')
               ->get()
               ->first();
 
-          if (!$commonTimeShift) {
-              $commonTimeShiftModel = resolve(CommonTimeShift::class);
-              $commonTimeShift = $commonTimeShiftModel
-                  ->where('type', '=', $type)
+            if (!$commonTimeShift) {
+                $commonTimeShiftModel = resolve(CommonTimeShift::class);
+                $commonTimeShift = $commonTimeShiftModel
+                  ->whereNull('role_id')
                   ->whereNull('effectivity_date')
                   ->get()
                   ->first();
-          }
+            }
 
-          // set expected time-in/out
-          $expectedTimeIn = Carbon::createFromFormat(
+            // set expected time-in/out
+            $expectedTimeIn = Carbon::createFromFormat(
               'Y-m-d H:i:s',
               ($commonTimeShift->effectivity_date ?: $date) . ' ' . $commonTimeShift->expected_time_in
           );
-          $expectedTimeOut = Carbon::createFromFormat(
+            $expectedTimeOut = Carbon::createFromFormat(
               'Y-m-d H:i:s',
               ($commonTimeShift->effectivity_date ?: $date) . ' ' . $commonTimeShift->expected_time_out
           );
 
-          $expectedTimeInMinutes = (((int)$expectedTimeIn->format('H')) * 60 * 60
+            $expectedTimeInMinutes = (((int)$expectedTimeIn->format('H')) * 60 * 60
               + ((int)$expectedTimeIn->format('i') * 60)
               + (int)$expectedTimeIn->format('s')) / 60;
-          $expectedTimeOutMinutes = (((int)$expectedTimeOut->format('H')) * 60 * 60
+            $expectedTimeOutMinutes = (((int)$expectedTimeOut->format('H')) * 60 * 60
               + ((int)$expectedTimeOut->format('i') * 60)
               + (int)$expectedTimeOut->format('s')) / 60;
 
-          $expectedTimeInOut[$type] = [];
-          $expectedTimeInOut[$type]['expectedTimeIn'] = $expectedTimeIn;
-          $expectedTimeInOut[$type]['expectedTimeInMinutes'] = $expectedTimeInMinutes;
-          $expectedTimeInOut[$type]['expectedTimeOut'] = $expectedTimeOut;
-          $expectedTimeInOut[$type]['expectedTimeOutMinutes'] = $expectedTimeOutMinutes;
+            $expectedTimeInOut[$role->id] = [];
+            $expectedTimeInOut[$role->id]['expectedTimeIn'] = $expectedTimeIn;
+            $expectedTimeInOut[$role->id]['expectedTimeInMinutes'] = $expectedTimeInMinutes;
+            $expectedTimeInOut[$role->id]['expectedTimeOut'] = $expectedTimeOut;
+            $expectedTimeInOut[$role->id]['expectedTimeOutMinutes'] = $expectedTimeOutMinutes;
         }
 
         return $expectedTimeInOut;
