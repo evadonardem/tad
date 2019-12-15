@@ -91,7 +91,30 @@ class BiometricUsersController extends Controller
      */
     public function update(Request $request, $id)
     {
-        //
+        $deviceUser = null;
+        $storedUser = User::findOrFail($id);
+
+        $attributes = $request->only([
+            'name',
+            'role',
+        ]);
+
+        if (env('DEVICE_ENABLED')) {
+        }
+
+        $storedUser->name = $attributes['name'];
+
+        $currentRole = $storedUser->roles()
+          ->orderBy('user_roles.created_at', 'DESC')
+          ->first();
+
+        if ($currentRole->id !== $attributes['role']) {
+            $storedUser->roles()->attach($attributes['role']);
+        }
+
+        $storedUser->save();
+
+        return response()->noContent();
     }
 
     /**
