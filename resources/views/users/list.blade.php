@@ -94,7 +94,7 @@
         {
           'data': null,
           'render': function (data, type, row) {
-            var editBtn = '<a href="#" class="edit btn btn-secondary" data-toggle="modal" data-target="#addEditBiometricUserModal" data-user-id="' + row.id + '" data-biometric-id="' + row.biometric_id + '" data-name="' + row.name + '" data-role="' + row.role + '"><i class="fa fa-edit"></i></a>';
+            var editBtn = '<a href="#" class="edit btn btn-primary" data-toggle="modal" data-target="#addEditBiometricUserModal" data-user-id="' + row.id + '" data-biometric-id="' + row.biometric_id + '" data-name="' + row.name + '" data-role="' + row.role + '"><i class="fa fa-edit"></i></a>';
             var deleteBtn = '<a href="#" class="delete btn btn-warning" data-toggle="modal" data-target="#deleteModal" data-user-id="' + row.id + '" data-biometric-id="' + row.biometric_id + '" data-name="' + row.name + '"><i class="fa fa-trash"></i></a>';
 
             return editBtn + ' ' + deleteBtn;

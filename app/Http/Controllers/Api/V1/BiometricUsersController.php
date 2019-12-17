@@ -100,6 +100,32 @@ class BiometricUsersController extends Controller
         ]);
 
         if (env('DEVICE_ENABLED')) {
+            $this->zk = new ZKLibrary(env('DEVICE_IP'), env('DEVICE_PORT'));
+            $this->zk->connect();
+
+            $deviceUsers = $this->zk->getUser();
+            $filteredDeviceUsers = array_filter(
+                $deviceUsers,
+                function ($deviceUser) use ($storedUser) {
+                    return $deviceUser['biometric_id'] == $storedUser->biometric_id;
+                }
+            );
+
+            $deviceUser = (count($filteredDeviceUsers) > 0)
+                ? array_pop($filteredDeviceUsers)
+                : null;
+
+            if ($deviceUser) {
+                $this->zk->setUser(
+                  $deviceUser['record_id'],
+                  $deviceUser['biometric_id'],
+                  $attributes['name'],
+                  $deviceUser['password'],
+                  $deviceUser['role_id']
+              );
+            }
+
+            $this->zk->disconnect();
         }
 
         $storedUser->name = $attributes['name'];
@@ -252,5 +278,28 @@ class BiometricUsersController extends Controller
             ],
             422
         );
+    }
+
+    public function deviceUsers()
+    {
+        if (env('DEVICE_ENABLED')) {
+            $this->zk = new ZKLibrary(env('DEVICE_IP'), env('DEVICE_PORT'));
+            $this->zk->connect();
+            $deviceUsers = $this->zk->getUser();
+            $this->zk->disconnect();
+
+            return response()->json(
+                [
+                  'data' => $deviceUsers
+                ],
+                422
+            );
+        }
+        return response()->json(
+          [
+            'error' => 'Biometric device is disabled.'
+          ],
+          422
+      );
     }
 }

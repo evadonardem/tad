@@ -53,7 +53,10 @@
           </div>
           <div class="form-group">
             <label for="role">Role:</label>
-            <select class="form-control" id="role_id" name="role_id"></select>
+            <select class="form-control" id="role_id" name="role_id">
+              <option value=""></option>
+            </select>
+            <div class="invalid-feedback"></div>
           </div>
           <button type="button" class="btn btn-primary btn-block" id="registerBtn" name="button">Register</button>
         </div>
@@ -61,13 +64,6 @@
     </form>
   </div>
 </div>
-
-<hr class="my-4">
-
-<h2><i class="fa fa-users"></i> User Types</h2>
-
-<hr class="my-4">
-
 @endsection
 
 @section('custom-scripts')
@@ -109,7 +105,7 @@ $(function() {
       }
       userRoleSelect.select2({
         data: users,
-        placeholder: 'Select user role'
+        placeholder: 'Select Role'
       });
     });
 
@@ -127,8 +123,9 @@ $(function() {
 		        method: 'DELETE',
 		        success: function(response) {
 		            newFrm[0].reset();
+                userRoleSelect.val('').trigger('change');
 		            dataTable.ajax.reload();
-					deleteModal.modal('hide');
+					      deleteModal.modal('hide');
 		        }
 			 });
 		});
@@ -151,6 +148,7 @@ $(function() {
         },
         success: function(response) {
           newFrm[0].reset();
+          userRoleSelect.val('').trigger('change');
           dataTable.ajax.reload();
         },
         error: function(xhr) {
@@ -158,7 +156,10 @@ $(function() {
           if (data) {
             var errors = data.errors;
             for (key in errors) {
-              $('[name=' + key + ']').addClass('is-invalid').next().text(errors[key][0]);
+              $('[name=' + key + ']').addClass('is-invalid')
+                .closest('.form-group')
+                .find('.invalid-feedback')
+                .text(errors[key][0]);
             }
           }
         }
