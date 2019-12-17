@@ -52,5 +52,5 @@ $api->version('v1', function ($api) {
     // Utilities
     $api->get('sync-admin-users', 'App\Http\Controllers\Api\V1\BiometricUsersController@syncAdminUsers');
     $api->get('sync-all-users', 'App\Http\Controllers\Api\V1\BiometricUsersController@syncAllUsers');
-    $api->get('device-users', 'App\Http\Controllers\Api\V1\BiometricUsersController@deviceUsers')
+    $api->get('device-users', 'App\Http\Controllers\Api\V1\BiometricUsersController@deviceUsers');
 });
