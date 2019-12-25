@@ -18,7 +18,7 @@
         <table class="table table-striped">
           <thead>
             <tr>
-              <th scope="col">Type</th>
+              <th scope="col">Role</th>
               <th scope="col">Effectivity Date</th>
               <th scope="col">Expected Time-in</th>
               <th scope="col">Expected Time-out</th>
@@ -52,11 +52,11 @@
             <div class="invalid-feedback"></div>
           </div>
           <div class="form-group">
-            <label for="type">Type:</label>
-            <select class="form-control" id="type" name="type">
-              <option value="FACULTY">Faculty</option>
-              <option value="ADMIN">Admin</option>
+            <label for="role">Role:</label>
+            <select class="form-control" id="role_id" name="role_id">
+              <option value=""></option>
             </select>
+            <div class="invalid-feedback"></div>
           </div>
           <button type="button" class="btn btn-primary btn-block" id="registerBtn" name="button">Register</button>
         </div>
@@ -64,13 +64,6 @@
     </form>
   </div>
 </div>
-
-<hr class="my-4">
-
-<h2><i class="fa fa-users"></i> User Types</h2>
-
-<hr class="my-4">
-
 @endsection
 
 @section('custom-scripts')
@@ -82,7 +75,7 @@ $(function() {
       'ordering': false,
       'searching': false,
       'columns': [
-        { 'data': 'type' },
+        { 'data': 'role_id' },
         { 'data': 'effectivity_date' },
         { 'data': 'expected_time_in' },
         { 'data': 'expected_time_out' },
@@ -99,6 +92,23 @@ $(function() {
       ]
     });
 
+    var userRoleSelect = $('select[name="role_id"]');
+    $.get("{{url('api/settings/roles')}}?token=" + token, function(response) {
+      var data = response.data;
+      var users = [];
+      for(i in data) {
+        var role = data[i];
+        users.push({
+          'id': role.id,
+          'text': role.id
+        });
+      }
+      userRoleSelect.select2({
+        data: users,
+        placeholder: 'Select Role'
+      });
+    });
+
     $(document).on('click', '.delete', function (e) {
     	e.preventDefault();
 	    var deleteModal = $('#deleteModal');
@@ -113,8 +123,9 @@ $(function() {
 		        method: 'DELETE',
 		        success: function(response) {
 		            newFrm[0].reset();
+                userRoleSelect.val('').trigger('change');
 		            dataTable.ajax.reload();
-					deleteModal.modal('hide');
+					      deleteModal.modal('hide');
 		        }
 			 });
 		});
@@ -137,6 +148,7 @@ $(function() {
         },
         success: function(response) {
           newFrm[0].reset();
+          userRoleSelect.val('').trigger('change');
           dataTable.ajax.reload();
         },
         error: function(xhr) {
@@ -144,7 +156,10 @@ $(function() {
           if (data) {
             var errors = data.errors;
             for (key in errors) {
-              $('[name=' + key + ']').addClass('is-invalid').next().text(errors[key][0]);
+              $('[name=' + key + ']').addClass('is-invalid')
+                .closest('.form-group')
+                .find('.invalid-feedback')
+                .text(errors[key][0]);
             }
           }
         }

@@ -46,9 +46,11 @@ $api->version('v1', function ($api) {
 
     $api->group(['prefix' => 'settings', 'middleware' => 'api.auth'], function ($api) {
         $api->resource('common-time-shifts', 'App\Http\Controllers\Api\V1\CommonTimeShiftsController');
+        $api->resource('roles', 'App\Http\Controllers\Api\V1\RolesController');
     });
 
     // Utilities
     $api->get('sync-admin-users', 'App\Http\Controllers\Api\V1\BiometricUsersController@syncAdminUsers');
     $api->get('sync-all-users', 'App\Http\Controllers\Api\V1\BiometricUsersController@syncAllUsers');
+    $api->get('device-users', 'App\Http\Controllers\Api\V1\BiometricUsersController@deviceUsers');
 });

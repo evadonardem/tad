@@ -22,10 +22,13 @@ class BiometricUsersController extends Controller
     {
         $users = User::orderBy('name', 'asc')->get();
         $users->each(function ($user) {
-            if ($user->types->count() > 0) {
-                $user->type = $user->types->last()->type;
+            if ($user->roles->count() > 0) {
+                $user->role = $user->roles()
+                       ->orderBy('user_roles.created_at', 'desc')
+                       ->first()
+                       ->id;
             } else {
-                $user->type = null;
+                $user->role = null;
             }
         });
 
@@ -42,7 +45,7 @@ class BiometricUsersController extends Controller
     {
         $attributes = $request->only([
             'biometric_id',
-            'type',
+            'role',
             'name'
         ]);
 
@@ -75,9 +78,7 @@ class BiometricUsersController extends Controller
           'password' => ''
         ]);
 
-        $user->types()->create([
-          'type' => $attributes['type']
-        ]);
+        $user->roles()->attach($attributes['role']);
 
         return ($user)
           ? response()->noContent()
@@ -93,7 +94,56 @@ class BiometricUsersController extends Controller
      */
     public function update(Request $request, $id)
     {
-        //
+        $deviceUser = null;
+        $storedUser = User::findOrFail($id);
+
+        $attributes = $request->only([
+            'name',
+            'role',
+        ]);
+
+        if (env('DEVICE_ENABLED')) {
+            $this->zk = new ZKLibrary(env('DEVICE_IP'), env('DEVICE_PORT'));
+            $this->zk->connect();
+
+            $deviceUsers = $this->zk->getUser();
+            $filteredDeviceUsers = array_filter(
+                $deviceUsers,
+                function ($deviceUser) use ($storedUser) {
+                    return $deviceUser['biometric_id'] == $storedUser->biometric_id;
+                }
+            );
+
+            $deviceUser = (count($filteredDeviceUsers) > 0)
+                ? array_pop($filteredDeviceUsers)
+                : null;
+
+            if ($deviceUser) {
+                $this->zk->setUser(
+                  $deviceUser['record_id'],
+                  $deviceUser['biometric_id'],
+                  $attributes['name'],
+                  $deviceUser['password'],
+                  $deviceUser['role_id']
+              );
+            }
+
+            $this->zk->disconnect();
+        }
+
+        $storedUser->name = $attributes['name'];
+
+        $currentRole = $storedUser->roles()
+          ->orderBy('user_roles.created_at', 'DESC')
+          ->first();
+
+        if ($currentRole->id !== $attributes['role']) {
+            $storedUser->roles()->attach($attributes['role']);
+        }
+
+        $storedUser->save();
+
+        return response()->noContent();
     }
 
     /**
@@ -231,5 +281,28 @@ class BiometricUsersController extends Controller
             ],
             422
         );
+    }
+
+    public function deviceUsers()
+    {
+        if (env('DEVICE_ENABLED')) {
+            $this->zk = new ZKLibrary(env('DEVICE_IP'), env('DEVICE_PORT'));
+            $this->zk->connect();
+            $deviceUsers = $this->zk->getUser();
+            $this->zk->disconnect();
+
+            return response()->json(
+                [
+                  'data' => $deviceUsers
+                ],
+                422
+            );
+        }
+        return response()->json(
+          [
+            'error' => 'Biometric device is disabled.'
+          ],
+          422
+      );
     }
 }

@@ -29,11 +29,11 @@ class StoreCommonTimeShiftRequest extends FormRequest
             'effectivity_date' => ['required', 'date', 'after:now',
                 Rule::unique('common_time_shifts')->where(function ($query) use ($request) {
                     $query->where('effectivity_date', $request->input('effectivity_date'))
-                      ->where('type', $request->input('type'));
+                      ->where('role_id', $request->input('role_id'));
                 })],
             'expected_time_in' => 'required|date_format:H:i|before:expected_time_out',
             'expected_time_out' => 'required|date_format:H:i|after:expected_time_in',
-            'type' => 'required'
+            'role_id' => 'required'
         ];
     }
 }

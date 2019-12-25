@@ -42,7 +42,7 @@ class CommonTimeShiftsController extends Controller
     public function store(StoreCommonTimeShiftRequest $request)
     {
         $attributes = $request->only([
-            'type',
+            'role_id',
             'effectivity_date',
             'expected_time_in',
             'expected_time_out'
