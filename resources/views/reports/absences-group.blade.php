@@ -75,9 +75,9 @@
             <th scope="col">Expected Time-out</th>
             <th scope="col">Time-in</th>
             <th scope="col">Time-out</th>
-            <th scope="col">Late (min.)</th>
-            <th scope="col">Under Time (min.)</th>
-            <th scope="col">Total (min.)</th>
+            <th scope="col">Late (HH:MM:SS)</th>
+            <th scope="col">Under Time (HH:MM:SS)</th>
+            <th scope="col">Total (HH:MM:SS)</th>
             <th scope="col">Reason</th>
             <th></th>
           </tr>
@@ -211,9 +211,9 @@
             { 'data': 'expected_time_out' },
             { 'data': 'time_in' },
             { 'data': 'time_out' },
-            { 'data': 'late_in_minutes', 'className': 'text-right' },
-            { 'data': 'undertime_in_minutes', 'className': 'text-right' },
-            { 'data': 'total_late_undertime_in_minutes', 'className': 'text-right' },
+            { 'data': 'late', 'className': 'text-right' },
+            { 'data': 'undertime', 'className': 'text-right' },
+            { 'data': 'total_late_undertime', 'className': 'text-right' },
             { 'data': 'reason' },
             {
               'data': null,

@@ -93,12 +93,8 @@ class ReportsController extends Controller
                           ->first();
                         $userRole = $userRole->id;
 
-                        $timeInInSeconds = (((int)$timeIn->format('H')) * 3600)
-                          + ((int)$timeIn->format('i') * 60)
-                          + (int)$timeIn->format('s');
-                        $timeOutInSeconds = (((int)$timeOut->format('H')) * 3600)
-                          + ((int)$timeOut->format('i') * 60)
-                          + (int)$timeOut->format('s');
+                        $timeInInSeconds = $this->timeInSeconds($timeIn);
+                        $timeOutInSeconds = $this->timeInSeconds($timeOut);
 
                         $lateSeconds = $timeInInSeconds - $expectedTimeInOut[$userRole]['expectedTimeInSeconds'];
                         $lateSeconds = $lateSeconds > 0 ? $lateSeconds : 0;
@@ -247,20 +243,19 @@ class ReportsController extends Controller
                             $timeIn = Carbon::createFromFormat('Y-m-d H:i:s', $manualAttendanceLog->log_date . ' ' . $manualAttendanceLog->time_in);
                             $timeOut = Carbon::createFromFormat('Y-m-d H:i:s', $manualAttendanceLog->log_date . ' ' . $manualAttendanceLog->time_out);
 
-                            $timeInInMinutes = (((int)$timeIn->format('H')) * 60 * 60
-                            + ((int)$timeIn->format('i') * 60)
-                            + (int)$timeIn->format('s')) / 60;
-                            $timeOutInMinutes = (((int)$timeOut->format('H')) * 60 * 60
-                            + ((int)$timeOut->format('i') * 60)
-                            + (int)$timeOut->format('s')) / 60;
+                            $timeInInSeconds = $this->timeInSeconds($timeIn);
+                            $timeOutInSeconds = $this->timeInSeconds($timeOut);
 
-                            $late = $timeInInMinutes - $expectedTimeInOut[$userRole]['expectedTimeInMinutes'];
-                            $late = number_format($late > 0 ? $late : 0, 2);
+                            $lateSeconds = $timeInInSeconds - $expectedTimeInOut[$userRole]['expectedTimeInSeconds'];
+                            $lateSeconds = $lateSeconds > 0 ? $lateSeconds : 0;
+                            $late = $this->formatTimeDisplay($lateSeconds);
 
-                            $undertime = $expectedTimeInOut[$userRole]['expectedTimeOutMinutes'] - $timeOutInMinutes;
-                            $undertime = number_format($undertime > 0 ? $undertime : 0, 2);
+                            $undertimeSeconds = $expectedTimeInOut[$userRole]['expectedTimeOutSeconds'] - $timeOutInSeconds;
+                            $undertimeSeconds = $undertimeSeconds > 0 ? $undertimeSeconds : 0;
+                            $undertime = $this->formatTimeDisplay($undertimeSeconds);
 
-                            $totalLateUndertime = number_format($late + $undertime, 2);
+                            $totalLateUndertimeSeconds = $lateSeconds + $undertimeSeconds;
+                            $totalLateUndertime = $this->formatTimeDisplay($totalLateUndertimeSeconds);
                         }
 
                         $tmp = [
@@ -273,9 +268,9 @@ class ReportsController extends Controller
                           'expected_time_out' => $expectedTimeInOut[$userRole]['expectedTimeOut']->format('h:i:s A'),
                           'time_in' => ($timeIn) ? $timeIn->format('h:i:s A') : null,
                           'time_out' => ($timeOut) ? $timeOut->format('h:i:s A') : null,
-                          'late_in_minutes' => $late,
-                          'undertime_in_minutes' => $undertime,
-                          'total_late_undertime_in_minutes' => $totalLateUndertime,
+                          'late' => $late,
+                          'undertime' => $undertime,
+                          'total_late_undertime' => $totalLateUndertime,
                           'reason' => ($manualAttendanceLog) ? $manualAttendanceLog->reason : null
                       ];
 
@@ -356,5 +351,12 @@ class ReportsController extends Controller
         return str_pad($hours, 2, 0, STR_PAD_LEFT) . ':' .
           str_pad($minutes, 2, 0, STR_PAD_LEFT) . ':' .
           str_pad($seconds, 2, 0, STR_PAD_LEFT);
+    }
+
+    private function timeInSeconds($time)
+    {
+        return (((int)$time->format('H')) * 3600)
+          + ((int)$time->format('i') * 60)
+          + (int)$time->format('s');
     }
 }
