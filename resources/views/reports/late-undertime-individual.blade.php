@@ -257,34 +257,12 @@
                           i : 0;
               };
 
-              var formatTimeDisplay = function ( seconds ) {
-                  var hours = Math.floor(seconds / 3600) > 0
-                    ? Math.floor(seconds / 3600)
-                    : 0;
-                  seconds -= hours * 3600;
-                  var minutes = Math.floor(seconds / 60) > 0
-                    ? Math.floor(seconds / 60)
-                    : 0;
-                  seconds -= minutes * 60;
-                  seconds = seconds > 0 ? seconds : 0;
-
-                  hours = String('0' + hours).slice(-2);
-                  minutes = String('0' + minutes).slice(-2);
-                  seconds = String('0' + seconds).slice(-2);
-
-                  return hours + ':' + minutes + ':' + seconds;
-              };
-
               // Total late over all pages
               totalLate = api
                   .column( 5 )
                   .data()
                   .map( function(time) {
-                    var time = time.split(':');
-                    var hours = intVal(time[0]) * 3600;
-                    var minutes = intVal(time[1]) * 60;
-                    var seconds = intVal(time[2]);
-                    return hours + minutes + seconds;
+                    return TADHelper.timeToSeconds(time);
                   })
                   .reduce( function (a, b) {
                       return intVal(a) + intVal(b);
@@ -295,11 +273,7 @@
                   .column( 6 )
                   .data()
                   .map( function(time) {
-                    var time = time.split(':');
-                    var hours = intVal(time[0]) * 3600;
-                    var minutes = intVal(time[1]) * 60;
-                    var seconds = intVal(time[2]);
-                    return hours + minutes + seconds;
+                    return TADHelper.timeToSeconds(time);
                   })
                   .reduce( function (a, b) {
                       return intVal(a) + intVal(b);
@@ -310,11 +284,7 @@
                   .column( 7 )
                   .data()
                   .map( function(time) {
-                    var time = time.split(':');
-                    var hours = intVal(time[0]) * 3600;
-                    var minutes = intVal(time[1]) * 60;
-                    var seconds = intVal(time[2]);
-                    return hours + minutes + seconds;
+                    return TADHelper.timeToSeconds(time);
                   })
                   .reduce( function (a, b) {
                       return intVal(a) + intVal(b);
@@ -325,21 +295,25 @@
                   .column( 8 )
                   .data()
                   .map( function(time) {
-                    var time = time.split(':');
-                    var hours = intVal(time[0]) * 3600;
-                    var minutes = intVal(time[1]) * 60;
-                    var seconds = intVal(time[2]);
-                    return hours + minutes + seconds;
+                    return TADHelper.timeToSeconds(time);
                   })
                   .reduce( function (a, b) {
                       return intVal(a) + intVal(b);
                   }, 0 );
 
               // Update footer
-              $( api.column( 5 ).footer() ).html( formatTimeDisplay(totalLate) );
-              $( api.column( 6 ).footer() ).html( formatTimeDisplay(totalUndertime) );
-              $( api.column( 7 ).footer() ).html( formatTimeDisplay(totalAdjustment) );
-              $( api.column( 8 ).footer() ).html( formatTimeDisplay(totalLateUndertime) );
+              $( api.column( 5 ).footer() ).html(
+                TADHelper.formatTimeDisplay(totalLate)
+              );
+              $( api.column( 6 ).footer() ).html(
+                TADHelper.formatTimeDisplay(totalUndertime)
+              );
+              $( api.column( 7 ).footer() ).html(
+                TADHelper.formatTimeDisplay(totalAdjustment)
+              );
+              $( api.column( 8 ).footer() ).html(
+                TADHelper.formatTimeDisplay(totalLateUndertime)
+              );
             }
           });
         }
@@ -372,34 +346,17 @@
       modal.find('.modal-body').find('#adjustment')
         .off()
         .on('change', function() {
-            var timeToSeconds = function(time) {
-              time = time.split(':');
-              return +time[0] * 3600 + +time[1] * 60 + +time[2];
-            };
-            var secondsToTime = function(seconds) {
-              var hours = Math.floor(seconds / 3600);
-              hours = hours > 0 ? hours : 0;
-              seconds -= hours * 3600;
-              var minutes = Math.floor(seconds / 60);
-              minutes = minutes > 0 ? minutes : 0;
-              seconds -= minutes * 60;
-              seconds = seconds > 0 ? seconds : 0;
-
-              hours = String('0' + hours).slice(-2);
-              minutes = String('0' + minutes).slice(-2);
-              seconds = String('0' + seconds).slice(-2);
-
-              return hours + ":" + minutes + ":" + seconds;
-            };
-            var lateInSeconds = timeToSeconds(late);
-            var undertimeInSeconds = timeToSeconds(undertime);
-            var adjustmentInSeconds = timeToSeconds($(this).val());
-            var _totalLateUndertimeInSeconds = +lateInSeconds + +undertimeInSeconds - +adjustmentInSeconds;
+            var lateInSeconds = TADHelper.timeToSeconds(late);
+            var undertimeInSeconds = TADHelper.timeToSeconds(undertime);
+            var adjustmentInSeconds = TADHelper.timeToSeconds($(this).val());
+            var _totalLateUndertimeInSeconds = +lateInSeconds
+              + +undertimeInSeconds
+              - +adjustmentInSeconds;
 
             if (_totalLateUndertimeInSeconds >= 0) {
               modal.find('.modal-body')
                   .find('#totalLateUndertime')
-                  .val(secondsToTime(_totalLateUndertimeInSeconds));
+                  .val(TADHelper.formatTimeDisplay(_totalLateUndertimeInSeconds));
             } else {
               modal.find('.modal-body')
                   .find('#totalLateUndertime')
