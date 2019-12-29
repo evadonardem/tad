@@ -21,10 +21,15 @@ class AdjustmentLateUndertimeController extends Controller
         $fields = $request->only([
           'biometric_id',
           'log_date',
-          'adjustment_in_minutes',
+          'adjustment',
           'reason'
         ]);
 
+        $adjustmentTime = explode(':', $fields['adjustment']);
+        $adjustmentSeconds = $adjustmentTime[0] * 3600
+          + $adjustmentTime[1] * 60
+          + $adjustmentTime[2];
+        $fields['adjustment_in_seconds'] = $adjustmentSeconds;
         $fields['created_by'] = Auth::user()->id;
 
         return AttendanceLogAdjustment::create($fields);

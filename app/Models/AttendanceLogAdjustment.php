@@ -9,7 +9,7 @@ class AttendanceLogAdjustment extends Model
     protected $fillable = [
       'biometric_id',
       'log_date',
-      'adjustment_in_minutes',
+      'adjustment_in_seconds',
       'reason',
       'created_by'
     ];

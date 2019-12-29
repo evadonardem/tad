@@ -211,68 +211,68 @@
               </div>
           </div>
 
-        <!-- Late Under Time Adjustment Modal -->
+      <!-- Late Under Time Adjustment Modal -->
     	<div class="modal fade" id="adjustmentLateUndertimeModal" tabindex="-1" role="dialog" aria-labelledby="adjustmentLateUndertimeModalTitle" aria-hidden="true">
     	  <div class="modal-dialog modal-dialog-centered" role="document">
     	    <div class="modal-content">
-    	      <div class="modal-header">
+            <div class="modal-header">
     	        <h5 class="modal-title"></h5>
     	        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
     	          <span aria-hidden="true">&times;</span>
     	        </button>
     	      </div>
     	      <div class="modal-body">
-                  <p><span class="biometric-id"></span> <span class="name"></span></p>
-                  <div class="form-group">
-                    <label for="logDate">Date:</label>
-                    <input
-                        type="date"
-                        class="form-control"
-                        id="logDate"
-                        name="log_date"
-                        readonly>
-                  </div>
-                  <div class="form-group">
-                    <label for="lateInMinutes">Late (min.):</label>
-                    <input
-                        type="number"
-                        class="form-control"
-                        id="lateInMinutes"
-                        name="late_in_minutes"
-                        readonly>
-                  </div>
-                  <div class="form-group">
-                    <label for="undertimeInMinutes">Under Time (min.):</label>
-                    <input
-                        type="number"
-                        class="form-control"
-                        id="undertimeInMinutes"
-                        name="undertime_in_minutes"
-                        readonly>
-                  </div>
-                  <div class="form-group">
-                    <label for="adjustmentInMinutes">Adjustment (min.):</label>
-                    <input
-                        type="number"
-                        class="form-control"
-                        id="adjustmentInMinutes"
-                        name="adjustment_in_minutes">
-                    <div class="invalid-feedback"></div>
-                  </div>
-                  <div class="form-group">
-                    <label for="totalLateUndertimeInMinutes">Total (min.):</label>
-                    <input type="text"
-                        class="form-control"
-                        id="totalLateUndertimeInMinutes"
-                        name="total_late_undertime_in_minutes"
-                        readonly>
-                    <div class="invalid-feedback"></div>
-                  </div>
-                  <div class="form-group">
-                    <label for="reason">Reason</label>
-                    <textarea class="form-control" id="reason" name="reason"></textarea>
-                    <div class="invalid-feedback"></div>
-                  </div>
+              <p><span class="biometric-id"></span> <span class="name"></span></p>
+              <div class="form-group">
+                <label for="logDate">Date:</label>
+                <input
+                    type="date"
+                    class="form-control"
+                    id="logDate"
+                    name="log_date"
+                    readonly>
+              </div>
+              <div class="form-group">
+                <label for="late">Late (HH:MM:SS):</label>
+                <input
+                    type="text"
+                    class="form-control"
+                    id="late"
+                    name="late"
+                    readonly>
+              </div>
+              <div class="form-group">
+                <label for="undertime">Under Time (HH:MM:SS):</label>
+                <input
+                    type="text"
+                    class="form-control"
+                    id="undertime"
+                    name="undertime"
+                    readonly>
+              </div>
+              <div class="form-group">
+                <label for="adjustment">Adjustment (HH:MM:SS):</label>
+                <input
+                    type="text"
+                    class="form-control"
+                    id="adjustment"
+                    name="adjustment">
+                <div class="invalid-feedback"></div>
+              </div>
+              <div class="form-group">
+                <label for="totalLateUndertime">Total (HH:MM:SS):</label>
+                <input type="text"
+                    class="form-control"
+                    id="totalLateUndertime"
+                    name="total_late_undertime"
+                    readonly>
+                <div class="invalid-feedback"></div>
+              </div>
+              <div class="form-group">
+                <label for="reason">Reason</label>
+                <textarea class="form-control" id="reason" name="reason"></textarea>
+                <div class="invalid-feedback"></div>
+              </div>
     	      </div>
     	      <div class="modal-footer">
     	        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>

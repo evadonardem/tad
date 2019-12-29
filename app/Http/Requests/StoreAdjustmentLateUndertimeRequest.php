@@ -32,8 +32,8 @@ class StoreAdjustmentLateUndertimeRequest extends FormRequest
                   $query->where('log_date', $request->input('log_date'))
                     ->where('biometric_id', $request->input('biometric_id'));
               })],
-          'adjustment_in_minutes' => 'required|numeric|gte:0',
-          'total_late_undertime_in_minutes' => 'required|numeric|gte:0',
+          'adjustment' => 'required|regex:/^[0-9]*:[0-5][0-9]:[0-5][0-9]/i',
+          'total_late_undertime' => 'required',
           'reason' => 'required'
         ];
     }

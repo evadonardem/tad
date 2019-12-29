@@ -93,35 +93,39 @@ class ReportsController extends Controller
                           ->first();
                         $userRole = $userRole->id;
 
-                        $timeInInMinutes = (((int)$timeIn->format('H')) * 60 * 60
+                        $timeInInSeconds = (((int)$timeIn->format('H')) * 3600)
                           + ((int)$timeIn->format('i') * 60)
-                          + (int)$timeIn->format('s')) / 60;
-                        $timeOutInMinutes = (((int)$timeOut->format('H')) * 60 * 60
+                          + (int)$timeIn->format('s');
+                        $timeOutInSeconds = (((int)$timeOut->format('H')) * 3600)
                           + ((int)$timeOut->format('i') * 60)
-                          + (int)$timeOut->format('s')) / 60;
+                          + (int)$timeOut->format('s');
 
-                        $late = $timeInInMinutes - $expectedTimeInOut[$userRole]['expectedTimeInMinutes'];
-                        $late = number_format($late > 0 ? $late : 0, 2);
+                        $lateSeconds = $timeInInSeconds - $expectedTimeInOut[$userRole]['expectedTimeInSeconds'];
+                        $lateSeconds = $lateSeconds > 0 ? $lateSeconds : 0;
+                        $lateTimeDisplay = $this->formatTimeDisplay($lateSeconds);
 
-                        $undertime = $expectedTimeInOut[$userRole]['expectedTimeOutMinutes'] - $timeOutInMinutes;
-                        $undertime = number_format($undertime > 0 ? $undertime : 0, 2);
+                        $undertimeSeconds = $expectedTimeInOut[$userRole]['expectedTimeOutSeconds'] - $timeOutInSeconds;
+                        $undertimeSeconds = $undertimeSeconds > 0 ? $undertimeSeconds : 0;
+                        $undertimeTimeDisplay = $this->formatTimeDisplay($undertimeSeconds);
 
-                        $adjustment = 0;
+                        $adjustmentSeconds = 0;
                         $reason = '';
                         $isAdjusted = false;
 
                         $attendanceLogAdjustment = AttendanceLogAdjustment::where([
                           'biometric_id' => $user['biometric_id'],
                           'log_date' => $date
-                      ])->first();
+                        ])->first();
 
                         if ($attendanceLogAdjustment) {
-                            $adjustment = $attendanceLogAdjustment->adjustment_in_minutes;
+                            $adjustmentSeconds = $attendanceLogAdjustment->adjustment_in_seconds;
                             $reason = $attendanceLogAdjustment->reason;
                             $isAdjusted = true;
                         }
 
-                        $totalLateUndertime = number_format($late + $undertime - $adjustment, 2);
+                        $totalLateUndertimeSeconds = $lateSeconds + $undertimeSeconds - $adjustmentSeconds;
+                        $adjustmentTimeDisplay = $this->formatTimeDisplay($adjustmentSeconds);
+                        $totalLateUndertimeTimeDisplay = $this->formatTimeDisplay($totalLateUndertimeSeconds);
 
                         $tmp = [
                           'biometric_id' => $user['biometric_id'],
@@ -133,10 +137,10 @@ class ReportsController extends Controller
                           'expected_time_out' => $expectedTimeInOut[$userRole]['expectedTimeOut']->format('h:i:s A'),
                           'time_in' => $timeIn->format('h:i:s A'),
                           'time_out' => $timeOut->format('h:i:s A'),
-                          'late_in_minutes' => $late,
-                          'undertime_in_minutes' => $undertime,
-                          'adjustment_in_minutes' => $adjustment,
-                          'total_late_undertime_in_minutes' => $totalLateUndertime,
+                          'late' => $lateTimeDisplay,
+                          'undertime' => $undertimeTimeDisplay,
+                          'adjustment' => $adjustmentTimeDisplay,
+                          'total_late_undertime' => $totalLateUndertimeTimeDisplay,
                           'reason' => $reason,
                           'is_adjusted' => $isAdjusted
                       ];
@@ -289,7 +293,7 @@ class ReportsController extends Controller
     private function expectedTimeInOut($date)
     {
         $roles = Role::all();
-        $expectedTimeInOunt = [];
+        $expectedTimeInOut = [];
         foreach ($roles as $role) {
             // fetch common time shift by date
             $commonTimeShiftModel = resolve(CommonTimeShift::class);
@@ -314,26 +318,43 @@ class ReportsController extends Controller
             $expectedTimeIn = Carbon::createFromFormat(
               'Y-m-d H:i:s',
               ($commonTimeShift->effectivity_date ?: $date) . ' ' . $commonTimeShift->expected_time_in
-          );
+            );
             $expectedTimeOut = Carbon::createFromFormat(
               'Y-m-d H:i:s',
               ($commonTimeShift->effectivity_date ?: $date) . ' ' . $commonTimeShift->expected_time_out
-          );
+            );
 
-            $expectedTimeInMinutes = (((int)$expectedTimeIn->format('H')) * 60 * 60
-              + ((int)$expectedTimeIn->format('i') * 60)
-              + (int)$expectedTimeIn->format('s')) / 60;
-            $expectedTimeOutMinutes = (((int)$expectedTimeOut->format('H')) * 60 * 60
-              + ((int)$expectedTimeOut->format('i') * 60)
-              + (int)$expectedTimeOut->format('s')) / 60;
+            $expectedTimeInSeconds = (((int)$expectedTimeIn->format('H')) * 3600)
+              + (((int)$expectedTimeIn->format('i')) * 60)
+              + (int)$expectedTimeIn->format('s');
+            $expectedTimeOutSeconds = (((int)$expectedTimeOut->format('H')) * 3600)
+              + (((int)$expectedTimeOut->format('i')) * 60)
+              + (int)$expectedTimeOut->format('s');
 
             $expectedTimeInOut[$role->id] = [];
             $expectedTimeInOut[$role->id]['expectedTimeIn'] = $expectedTimeIn;
-            $expectedTimeInOut[$role->id]['expectedTimeInMinutes'] = $expectedTimeInMinutes;
+            $expectedTimeInOut[$role->id]['expectedTimeInSeconds'] = $expectedTimeInSeconds;
             $expectedTimeInOut[$role->id]['expectedTimeOut'] = $expectedTimeOut;
-            $expectedTimeInOut[$role->id]['expectedTimeOutMinutes'] = $expectedTimeOutMinutes;
+            $expectedTimeInOut[$role->id]['expectedTimeOutSeconds'] = $expectedTimeOutSeconds;
         }
 
         return $expectedTimeInOut;
+    }
+
+    private function formatTimeDisplay($seconds)
+    {
+        $hours = floor($seconds / 3600) > 0
+          ? floor($seconds / 3600)
+          : 0;
+        $seconds -= $hours * 3600;
+        $minutes = floor($seconds / 60) > 0
+          ? floor($seconds / 60)
+          : 0;
+        $seconds -= $minutes * 60;
+        $seconds = $seconds > 0 ? $seconds : 0;
+
+        return str_pad($hours, 2, 0, STR_PAD_LEFT) . ':' .
+          str_pad($minutes, 2, 0, STR_PAD_LEFT) . ':' .
+          str_pad($seconds, 2, 0, STR_PAD_LEFT);
     }
 }
