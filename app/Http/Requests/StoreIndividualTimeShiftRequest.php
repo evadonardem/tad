@@ -6,7 +6,7 @@ use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 
-class StoreAdjustmentLateUndertimeRequest extends FormRequest
+class StoreIndividualTimeShiftRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -27,14 +27,13 @@ class StoreAdjustmentLateUndertimeRequest extends FormRequest
     {
         return [
           'biometric_id' => 'required',
-          'log_date' => ['required', 'date', 'before:now',
-              Rule::unique('manual_attendance_logs')->where(function ($query) use ($request) {
-                  $query->where('log_date', $request->input('log_date'))
+          'effectivity_date' => ['required', 'date', 'after:now',
+              Rule::unique('individual_time_shifts')->where(function ($query) use ($request) {
+                  $query->where('effectivity_date', $request->input('effectivity_date'))
                     ->where('biometric_id', $request->input('biometric_id'));
               })],
-          'adjustment' => 'required|regex:/^[0-9]*:[0-5][0-9]:[0-5][0-9]/i',
-          'total_late_undertime' => 'required',
-          'reason' => 'required'
+          'expected_time_in' => 'required|date_format:H:i|before:expected_time_out',
+          'expected_time_out' => 'required|date_format:H:i|after:expected_time_in',
         ];
     }
 }

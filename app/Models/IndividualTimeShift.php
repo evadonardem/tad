@@ -4,13 +4,12 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class AttendanceLogAdjustment extends Model
+class IndividualTimeShift extends Model
 {
     protected $fillable = [
       'biometric_id',
-      'log_date',
-      'adjustment_in_seconds',
-      'reason',
-      'created_by'
+      'effectivity_date',
+      'expected_time_in',
+      'expected_time_out'
     ];
 }

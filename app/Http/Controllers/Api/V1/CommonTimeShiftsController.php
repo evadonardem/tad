@@ -7,6 +7,7 @@ use App\Http\Controllers\Controller;
 use App\Models\AttendanceLog;
 use App\Models\CommonTimeShift;
 use App\Http\Requests\StoreCommonTimeShiftRequest;
+use Carbon\Carbon;
 
 class CommonTimeShiftsController extends Controller
 {
@@ -28,6 +29,16 @@ class CommonTimeShiftsController extends Controller
                 )->get()->count();
 
             $timeShift->is_locked = $count > 0;
+            $effectivityDate = $timeShift->effectivity_date ?: Carbon::now()->format('Y-m-d');
+
+            $timeShift->expected_time_in = Carbon::createFromFormat(
+                  'Y-m-d H:i:s',
+                  $effectivityDate . ' ' . $timeShift->expected_time_in
+                )->format('h:i:s A');
+            $timeShift->expected_time_out = Carbon::createFromFormat(
+                  'Y-m-d H:i:s',
+                  $effectivityDate . ' ' . $timeShift->expected_time_out
+                )->format('h:i:s A');
         }
 
         return response()->json(['data' => $commonTimeShifts]);

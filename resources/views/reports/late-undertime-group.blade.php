@@ -68,10 +68,10 @@
             <th scope="col">Expected Time-out</th>
             <th scope="col">Time-in</th>
             <th scope="col">Time-out</th>
-            <th scope="col">Late (min.)</th>
-            <th scope="col">Under Time (min.)</th>
-            <th scope="col">Adjustment (min.)</th>
-            <th scope="col">Total (min.)</th>
+            <th scope="col">Late (HH:MM:SS)</th>
+            <th scope="col">Under Time (HH:MM:SS)</th>
+            <th scope="col">Adjustment (HH:MM:SS)</th>
+            <th scope="col">Total (HH:MM:SS)</th>
             <th scope="col">Remarks</th>
             <th scope="col"></th>
           </tr>
@@ -227,10 +227,10 @@
             { 'data': 'expected_time_out' },
             { 'data': 'time_in' },
             { 'data': 'time_out' },
-            { 'data': 'late_in_minutes', 'className': 'text-right' },
-            { 'data': 'undertime_in_minutes', 'className': 'text-right' },
-            { 'data': 'adjustment_in_minutes', 'className': 'text-right' },
-            { 'data': 'total_late_undertime_in_minutes', 'className': 'text-right' },
+            { 'data': 'late', 'className': 'text-right' },
+            { 'data': 'undertime', 'className': 'text-right' },
+            { 'data': 'adjustment', 'className': 'text-right' },
+            { 'data': 'total_late_undertime', 'className': 'text-right' },
             { 'data': 'reason' },
             {
               'data': null,
@@ -243,9 +243,9 @@
                     'data-date="' + row.date + '" ' +
                     'data-biometric-id="' + row.biometric_id + '" ' +
                     'data-name="' + row.name + '" ' +
-                    'data-late-in-minutes="' + row.late_in_minutes + '" ' +
-                    'data-undertime-in-minutes="' + row.undertime_in_minutes + '" ' +
-                    'data-total-late-undertime-in-minutes="' + row.total_late_undertime_in_minutes + '">' +
+                    'data-late="' + row.late + '" ' +
+                    'data-undertime="' + row.undertime + '" ' +
+                    'data-total-late-undertime="' + row.total_late_undertime + '">' +
                         '<i class="fa fa-clock-o"></i>' +
                     '</a>'
                   : null;
@@ -269,6 +269,9 @@
             totalLate = api
                 .column( 8 )
                 .data()
+                .map( function(time) {
+                  return TADHelper.timeToSeconds(time);
+                })
                 .reduce( function (a, b) {
                     return intVal(a) + intVal(b);
                 }, 0 );
@@ -277,6 +280,9 @@
             totalUndertime = api
                 .column( 9 )
                 .data()
+                .map( function(time) {
+                  return TADHelper.timeToSeconds(time);
+                })
                 .reduce( function (a, b) {
                     return intVal(a) + intVal(b);
                 }, 0 );
@@ -285,6 +291,9 @@
             totalAdjustment = api
                 .column( 10 )
                 .data()
+                .map( function(time) {
+                  return TADHelper.timeToSeconds(time);
+                })
                 .reduce( function (a, b) {
                     return intVal(a) + intVal(b);
                 }, 0 );
@@ -293,15 +302,26 @@
             totalLateUndertime = api
                 .column( 11 )
                 .data()
+                .map( function(time) {
+                  return TADHelper.timeToSeconds(time);
+                })
                 .reduce( function (a, b) {
                     return intVal(a) + intVal(b);
                 }, 0 );
 
             // Update footer
-            $( api.column( 8 ).footer() ).html( totalLate.toFixed(2) );
-            $( api.column( 9 ).footer() ).html( totalUndertime.toFixed(2) );
-            $( api.column( 10 ).footer() ).html( totalAdjustment.toFixed(2) );
-            $( api.column( 11 ).footer() ).html( totalLateUndertime.toFixed(2) );
+            $( api.column( 8 ).footer() ).html(
+              TADHelper.formatTimeDisplay(totalLate)
+            );
+            $( api.column( 9 ).footer() ).html(
+              TADHelper.formatTimeDisplay(totalUndertime)
+            );
+            $( api.column( 10 ).footer() ).html(
+              TADHelper.formatTimeDisplay(totalAdjustment)
+            );
+            $( api.column( 11 ).footer() ).html(
+              TADHelper.formatTimeDisplay(totalLateUndertime)
+            );
           }
         });
       }
@@ -313,29 +333,41 @@
       var biometricId = $(this).data('biometric-id');
       var name = $(this).data('name');
       var date = $(this).data('date');
-      var lateInMinutes = $(this).data('late-in-minutes');
-      var undertimeInMinutes = $(this).data('undertime-in-minutes');
-      var totalLateUndertimeInMinutes = $(this).data('total-late-undertime-in-minutes');
+      var late = $(this).data('late');
+      var undertime = $(this).data('undertime');
+      var totalLateUndertime = $(this).data('total-late-undertime');
       modal.find('.modal-title').text('Adjustment Late/Under Time');
       modal.find('.modal-body').find('.biometric-id').text(biometricId);
       modal.find('.modal-body').find('.name').text(name);
       modal.find('.modal-body').find('#logDate').val(date);
-      modal.find('.modal-body').find('#lateInMinutes').val(lateInMinutes);
-      modal.find('.modal-body').find('#undertimeInMinutes').val(undertimeInMinutes);
-      modal.find('.modal-body').find('#adjustmentInMinutes').val('');
-      modal.find('.modal-body').find('#totalLateUndertimeInMinutes').val(totalLateUndertimeInMinutes);
+      modal.find('.modal-body').find('#late').val(late);
+      modal.find('.modal-body').find('#undertime').val(undertime);
+      modal.find('.modal-body').find('#adjustment').val('');
+      modal.find('.modal-body').find('#totalLateUndertime').val(totalLateUndertime);
       modal.find('.modal-body').find('#reason').val('');
       modal.find('.is-invalid').each(function() {
         $(this).removeClass('is-invalid');
       });
 
-      modal.find('.modal-body').find('#adjustmentInMinutes')
+      modal.find('.modal-body').find('#adjustment')
         .off()
         .on('change', function() {
-            var _totalLateUndertimeInMinutes = +lateInMinutes + +undertimeInMinutes - +$(this).val();
+          var lateInSeconds = TADHelper.timeToSeconds(late);
+          var undertimeInSeconds = TADHelper.timeToSeconds(undertime);
+          var adjustmentInSeconds = TADHelper.timeToSeconds($(this).val());
+          var _totalLateUndertimeInSeconds = +lateInSeconds
+            + +undertimeInSeconds
+            - +adjustmentInSeconds;
+
+          if (_totalLateUndertimeInSeconds >= 0) {
             modal.find('.modal-body')
-                .find('#totalLateUndertimeInMinutes')
-                .val(_totalLateUndertimeInMinutes.toFixed(2));
+                .find('#totalLateUndertime')
+                .val(TADHelper.formatTimeDisplay(_totalLateUndertimeInSeconds));
+          } else {
+            modal.find('.modal-body')
+                .find('#totalLateUndertime')
+                .val('');
+          }
         });
 
       modal.find('.modal-footer .btn.btn-primary').off().click(function () {
@@ -346,11 +378,11 @@
             data: {
                 biometric_id: biometricId,
                 log_date: date,
-                adjustment_in_minutes: modal.find('.modal-body')
-                    .find('#adjustmentInMinutes')
+                adjustment: modal.find('.modal-body')
+                    .find('#adjustment')
                     .val(),
-                total_late_undertime_in_minutes: modal.find('.modal-body')
-                    .find('#totalLateUndertimeInMinutes')
+                total_late_undertime: modal.find('.modal-body')
+                    .find('#totalLateUndertime')
                     .val(),
                 reason: modal.find('.modal-body').find('#reason').val()
             },
