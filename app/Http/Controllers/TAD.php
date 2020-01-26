@@ -14,17 +14,17 @@ class TAD extends Controller
 
     public function dashboard()
     {
-      return view('dashboard.index');
+        return view('dashboard.index');
     }
 
     public function users()
     {
-      return view('users.list');
+        return view('users.list');
     }
 
     public function attendanceLogs()
     {
-      $months = [
+        $months = [
         1 => 'Jan',
         2 => 'Feb',
         3 => 'Mar',
@@ -38,25 +38,30 @@ class TAD extends Controller
         11 => 'Nov',
         12 => 'Dec',
       ];
-      $now = Carbon::now();
-      $currentMonth = $now->format('n');
-      $currentYear = $now->format('Y');
+        $now = Carbon::now();
+        $currentMonth = $now->format('n');
+        $currentYear = $now->format('Y');
 
-      return view('attendance.logs', [
+        return view('attendance.logs', [
         'months' => $months,
         'currentMonth' => $currentMonth,
         'currentYear' => $currentYear
       ]);
     }
 
+    public function overrideLogs()
+    {
+        return view('attendance.overrides');
+    }
+
     public function reports()
     {
-      return view('reports.index');
+        return view('reports.index');
     }
 
     public function reportsLateUndertimeGroup()
     {
-      $months = [
+        $months = [
         1 => 'Jan',
         2 => 'Feb',
         3 => 'Mar',
@@ -70,11 +75,11 @@ class TAD extends Controller
         11 => 'Nov',
         12 => 'Dec',
       ];
-      $now = Carbon::now();
-      $currentMonth = $now->format('n');
-      $currentYear = $now->format('Y');
+        $now = Carbon::now();
+        $currentMonth = $now->format('n');
+        $currentYear = $now->format('Y');
 
-      return view('reports.late-undertime-group', [
+        return view('reports.late-undertime-group', [
         'months' => $months,
         'currentMonth' => $currentMonth,
         'currentYear' => $currentYear
@@ -83,7 +88,7 @@ class TAD extends Controller
 
     public function reportsLateUndertimeIndividual()
     {
-    		$months = [
+        $months = [
           1 => 'Jan',
           2 => 'Feb',
           3 => 'Mar',
@@ -106,7 +111,7 @@ class TAD extends Controller
           'months' => $months,
           'currentMonth' => $currentMonth,
           'currentYear' => $currentYear
-    	  ]);
+          ]);
     }
 
     public function reportsAbsencesGroup()
@@ -144,6 +149,16 @@ class TAD extends Controller
 
     public function settings()
     {
-    	return view('settings.index');
+        return view('settings.index');
+    }
+
+    public function settingsCommonTimeShifts()
+    {
+        return view('settings.common-time-shifts.index');
+    }
+
+    public function settingsUserRoles()
+    {
+        return view('settings.user-roles.index');
     }
 }
