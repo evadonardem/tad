@@ -29,9 +29,8 @@
             <div class="invalid-feedback"></div>
           </div>
           <div class="form-group">
-            <label for="role_id">Role:</label>
-            <select class="form-control" id="role_id" name="role_id">
-              <option value=""></option>
+            <label for="roles">Role:</label>
+            <select class="form-control" id="roles" name="roles[]" multiple>
             </select>
             <div class="invalid-feedback"></div>
           </div>
@@ -39,7 +38,7 @@
           <!-- Override Expected Time-in and/or Out -->
           <div class="form-group">
             <div class="form-check form-check-inline">
-              <input class="form-check-input" type="checkbox" id="do_override_expected">
+              <input class="form-check-input" type="checkbox" id="do_override_expected" name="do_override_expected" value="true">
               <label class="form-check-label" for="do_override_expected">Override Expected:</label>
             </div>
             <div class="form-check form-check-inline">
@@ -121,7 +120,7 @@
 <script type="text/javascript">
   $(function() {
     var token = $.cookie('token');
-    var userRoleSelect = $('#role_id');
+    var userRoleSelect = $('#roles');
 
     $.get("{{url('api/settings/roles')}}?token=" + token, function(response) {
       var data = response.data;
@@ -233,7 +232,7 @@
     form.off().submit(function (e) {
       e.preventDefault();
 
-      var url = "{{url('api/biometric/overrides')}}?token=" + token;
+      var url = "{{url('api/override/attendance-logs')}}?token=" + token;
       $.ajax({
         url: url,
         method: 'POST',
@@ -270,7 +269,7 @@
         form.find('#do_override_' + type).trigger('change');
       }
       modal.find('#override_date').val('');
-      modal.find('#role_id').val('').trigger('change');
+      modal.find('#roles').val('').trigger('change');
       modal.find('#override_log_except_users').val('').trigger('change');
       modal.modal('show');
     });

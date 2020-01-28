@@ -37,6 +37,7 @@ $api->version('v1', function ($api) {
     $api->group(['prefix' => 'override', 'middleware' => 'api.auth'], function ($api) {
         $api->post('manual-attendance-logs', 'App\Http\Controllers\Api\V1\ManualAttendanceController@store');
         $api->post('adjustment-late-undertime', 'App\Http\Controllers\Api\V1\AdjustmentLateUndertimeController@store');
+        $api->post('attendance-logs', 'App\Http\Controllers\Api\V1\AttendanceLogOverrideController@store');
     });
 
     $api->group(['prefix' => 'reports', 'middleware' => 'api.auth'], function ($api) {
