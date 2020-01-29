@@ -127,7 +127,7 @@ $(function() {
             },
             success: function(response) {
               form[0].reset();
-              userRolesDataTable.ajax.reload();
+              userRolesDataTable.ajax.reload(null, false);
               modal.modal('hide');
             },
             error: function(xhr) {
@@ -154,7 +154,7 @@ $(function() {
           url: url,
           method: 'DELETE',
           success: function(response) {
-            userRolesDataTable.ajax.reload();
+            userRolesDataTable.ajax.reload(null, false);
           }
      });
   });
@@ -188,7 +188,7 @@ $(function() {
             },
             success: function(response) {
               form[0].reset();
-              userRolesDataTable.ajax.reload();
+              userRolesDataTable.ajax.reload(null, false);
               modal.modal('hide');
             },
             error: function(xhr) {

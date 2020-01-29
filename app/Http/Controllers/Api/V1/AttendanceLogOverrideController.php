@@ -16,7 +16,9 @@ class AttendanceLogOverrideController extends Controller
      */
     public function index()
     {
-        //
+        $overrides = AttendanceLogOverride::orderBy('log_date', 'desc')->get();
+        
+        return response()->json(['data' => $overrides]);
     }
 
     /**

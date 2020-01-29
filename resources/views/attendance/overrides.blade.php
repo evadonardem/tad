@@ -11,6 +11,30 @@
 
 <hr class="my-4">
 
+<div class="row">
+  <div class="col-md-12">
+    <div class="card">
+      <div class="card-body">
+        <table id="userRolesList" class="table table-striped" style="width: 100%;">
+          <thead>
+            <tr>
+              <th scope="col">Log Date</th>
+              <th scope="col">Role</th>
+              <th scope="col">Expected Time-in</th>
+              <th scope="col">Expected Time-out</th>
+              <th scope="col">Log Time-in</th>
+              <th scope="col">Log Time-out</th>
+              <th scope="col">Reason</th>
+            </tr>
+          </thead>
+          <tbody>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- Create Override -->
 <div class="modal fade" id="createOverrideModal" tabindex="-1" role="dialog" aria-labelledby="createOverrideModalTitle" aria-hidden="true">
   <div class="modal-dialog modal-lg" role="document">
@@ -120,8 +144,23 @@
 <script type="text/javascript">
   $(function() {
     var token = $.cookie('token');
-    var userRoleSelect = $('#roles');
 
+    var userRolesDataTable = $('table').DataTable({
+      'ajax': "{{url('api/override/attendance-logs')}}?token=" + token,
+      'ordering': false,
+      'searching': false,
+      'columns': [
+        { 'data': 'log_date'},
+        { 'data': 'role_id' },
+        { 'data': 'expected_time_in' },
+        { 'data': 'expected_time_out' },
+        { 'data': 'expected_time_in' },
+        { 'data': 'expected_time_out' },
+        { 'data': 'reason' },
+      ]
+    });
+
+    var userRoleSelect = $('#roles');
     $.get("{{url('api/settings/roles')}}?token=" + token, function(response) {
       var data = response.data;
       var users = [];
