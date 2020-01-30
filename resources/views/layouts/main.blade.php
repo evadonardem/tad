@@ -163,6 +163,9 @@
             <li class="nav-item {{ Request::is('biometric/attendance-logs') ? 'active' : null }}">
               <a class="nav-link" href="{{ url('biometric/attendance-logs') }}"><i class="fa fa-calendar"></i> Attendance Logs</a>
             </li>
+            <li class="nav-item {{ Request::is('biometric/attendance-logs') ? 'active' : null }}">
+              <a class="nav-link" href="{{ url('biometric/override-logs') }}"><i class="fa fa-calendar-plus-o"></i> Override Logs</a>
+            </li>
             <li class="nav-item {{ Request::is('biometric/reports') ? 'active' : null }}">
               <a class="nav-link" href="{{ url('biometric/reports') }}"><i class="fa fa-file-text"></i> Reports</a>
             </li>

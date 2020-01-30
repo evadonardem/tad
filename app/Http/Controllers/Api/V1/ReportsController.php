@@ -10,6 +10,7 @@ use Dingo\Api\Routing\Helpers;
 use Carbon\Carbon;
 use App\User;
 use App\Models\AttendanceLogAdjustment;
+use App\Models\AttendanceLogOverride;
 use App\Models\CommonTimeShift;
 use App\Models\ManualAttendanceLog;
 use App\Models\Role;
@@ -17,6 +18,11 @@ use App\Models\Role;
 class ReportsController extends Controller
 {
     use Helpers;
+
+    public function __construct()
+    {
+        set_time_limit(0);
+    }
 
     public function lateUndertime(GetLateUndertimeReportRequest $request)
     {
@@ -47,15 +53,18 @@ class ReportsController extends Controller
             });
         }
 
-        $queryParams = 'start_date=' . $startDate->format('Y-m-d') . '&end_date=' . $endDate->format('Y-m-d');
-        $queryParams .= ($biometricId ? '&biometric_id=' . $biometricId : '');
-
-        $attendanceLogs = $this->api->get('biometric/attendance-logs?' . $queryParams);
-        $attendanceLogs = $attendanceLogs['data'];
-
         $report = [];
 
         if (!empty($users)) {
+            $biometricIds = array_column($users, 'biometric_id');
+            $biometricIds = implode(',', $biometricIds);
+
+            $queryParams = 'start_date=' . $startDate->format('Y-m-d') . '&end_date=' . $endDate->format('Y-m-d');
+            $queryParams .= '&biometric_id=' . $biometricIds;
+
+            $attendanceLogs = $this->api->get('biometric/attendance-logs?' . $queryParams);
+            $attendanceLogs = $attendanceLogs['data'];
+
             while ($startDate <= $endDate) {
                 $date = $startDate->format('Y-m-d');
                 $dateDisplay = $startDate->format('D d-M-y');
@@ -105,7 +114,7 @@ class ReportsController extends Controller
                         $undertimeTimeDisplay = $this->formatTimeDisplay($undertimeSeconds);
 
                         $adjustmentSeconds = 0;
-                        $reason = '';
+                        $reason = $expectedTimeInOut[$userRole]['overrideReason'];
                         $isAdjusted = false;
 
                         $attendanceLogAdjustment = AttendanceLogAdjustment::where([
@@ -115,7 +124,7 @@ class ReportsController extends Controller
 
                         if ($attendanceLogAdjustment) {
                             $adjustmentSeconds = $attendanceLogAdjustment->adjustment_in_seconds;
-                            $reason = $attendanceLogAdjustment->reason;
+                            $reason .= $attendanceLogAdjustment->reason;
                             $isAdjusted = true;
                         }
 
@@ -181,15 +190,18 @@ class ReportsController extends Controller
             });
         }
 
-        $queryParams = 'start_date=' . $startDate->format('Y-m-d') . '&end_date=' . $endDate->format('Y-m-d');
-        $queryParams .= ($biometricId ? '&biometric_id=' . $biometricId : '');
-
-        $attendanceLogs = $this->api->get('biometric/attendance-logs?' . $queryParams);
-        $attendanceLogs = $attendanceLogs['data'];
-
         $report = [];
 
         if (!empty($users)) {
+            $biometricIds = array_column($users, 'biometric_id');
+            $biometricIds = implode(',', $biometricIds);
+
+            $queryParams = 'start_date=' . $startDate->format('Y-m-d') . '&end_date=' . $endDate->format('Y-m-d');
+            $queryParams .= '&biometric_id=' . $biometricIds;
+
+            $attendanceLogs = $this->api->get('biometric/attendance-logs?' . $queryParams);
+            $attendanceLogs = $attendanceLogs['data'];
+
             while ($startDate <= $endDate) {
                 if (
                   $startDate >= Carbon::now() ||
@@ -319,6 +331,30 @@ class ReportsController extends Controller
               ($commonTimeShift->effectivity_date ?: $date) . ' ' . $commonTimeShift->expected_time_out
             );
 
+            // do override, if any
+            $attendanceLogOverrideModel = resolve(AttendanceLogOverride::class);
+            $attendanceLogOverride = $attendanceLogOverrideModel
+              ->whereDate('log_date', $date)
+              ->where('role_id', $role->id)
+              ->get()
+              ->first();
+            $overrideReason = null;
+            if ($attendanceLogOverride) {
+                if ($attendanceLogOverride->expected_time_in) {
+                    $expectedTimeIn = Carbon::createFromFormat(
+                    'Y-m-d H:i:s',
+                    $attendanceLogOverride->log_date . ' ' . $attendanceLogOverride->expected_time_in
+                  );
+                }
+                if ($attendanceLogOverride->expected_time_out) {
+                    $expectedTimeOut = Carbon::createFromFormat(
+                    'Y-m-d H:i:s',
+                    $attendanceLogOverride->log_date . ' ' . $attendanceLogOverride->expected_time_out
+                  );
+                }
+                $overrideReason = '(OVERRIDE: ' . $attendanceLogOverride->reason . ')';
+            }
+
             $expectedTimeInSeconds = (((int)$expectedTimeIn->format('H')) * 3600)
               + (((int)$expectedTimeIn->format('i')) * 60)
               + (int)$expectedTimeIn->format('s');
@@ -331,6 +367,7 @@ class ReportsController extends Controller
             $expectedTimeInOut[$role->id]['expectedTimeInSeconds'] = $expectedTimeInSeconds;
             $expectedTimeInOut[$role->id]['expectedTimeOut'] = $expectedTimeOut;
             $expectedTimeInOut[$role->id]['expectedTimeOutSeconds'] = $expectedTimeOutSeconds;
+            $expectedTimeInOut[$role->id]['overrideReason'] = $overrideReason;
         }
 
         return $expectedTimeInOut;

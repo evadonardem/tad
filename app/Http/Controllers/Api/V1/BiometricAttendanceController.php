@@ -56,7 +56,9 @@ class BiometricAttendanceController extends Controller
         }
 
         // filtering parameters
-        $biometricId = $request->input('biometric_id');
+        $biometricIds = $request->input('biometric_id')
+          ? explode(',', $request->input('biometric_id'))
+          : null;
         $name = $request->input('name');
         $startDate = Carbon::createFromFormat('Y-m-d', $request->input('start_date'))
           ->setTime(0, 0, 0)
@@ -67,8 +69,13 @@ class BiometricAttendanceController extends Controller
 
         $logsQry = AttendanceLog::whereBetween('biometric_timestamp', [$startDate, $endDate]);
 
-        if ($biometricId) {
-            $logsQry->where('biometric_id', '=', $biometricId);
+        if ($biometricIds) {
+            $biometricIdsChunks = array_chunk($biometricIds, 10);
+            $logsQry->where(function ($query) use ($biometricIdsChunks) {
+                foreach ($biometricIdsChunks as $chunk) {
+                    $query->orWhereIn('biometric_id', $chunk);
+                }
+            });
         }
 
         if ($name) {
