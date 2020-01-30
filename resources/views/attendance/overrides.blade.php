@@ -92,7 +92,7 @@
           <!-- Override Log Time-in and/or Out -->
           <div class="form-group">
             <div class="form-check form-check-inline">
-              <input class="form-check-input" type="checkbox" id="do_override_log">
+              <input class="form-check-input" type="checkbox" id="do_override_log" name="do_override_log" value="true">
               <label class="form-check-label" for="do_override_log">Override Log:</label>
             </div>
             <div class="form-check form-check-inline">
@@ -120,7 +120,7 @@
           </div>
           <div class="form-group" style="display: none;">
             <label for="override_time_in">Except users:</label>
-            <select class="form-control" id="override_log_except_users" name="override_log_except_users" multiple disabled></select>
+            <select class="form-control" id="override_log_except_users" name="override_log_except_users[]" multiple disabled></select>
             <div class="invalid-feedback"></div>
           </div>
 
@@ -145,7 +145,7 @@
   $(function() {
     var token = $.cookie('token');
 
-    var userRolesDataTable = $('table').DataTable({
+    var overridesDataTable = $('table').DataTable({
       'ajax': "{{url('api/override/attendance-logs')}}?token=" + token,
       'ordering': false,
       'searching': false,
@@ -154,8 +154,8 @@
         { 'data': 'role_id' },
         { 'data': 'expected_time_in' },
         { 'data': 'expected_time_out' },
-        { 'data': 'expected_time_in' },
-        { 'data': 'expected_time_out' },
+        { 'data': 'log_time_in' },
+        { 'data': 'log_time_out' },
         { 'data': 'reason' },
       ]
     });
@@ -284,7 +284,7 @@
         },
         success: function(response) {
           form[0].reset();
-          //userRolesDataTable.ajax.reload();
+          overridesDataTable.ajax.reload();
           modal.modal('hide');
         },
         error: function(xhr) {

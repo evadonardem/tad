@@ -19,6 +19,8 @@ class CreateAttendanceLogOverridesTable extends Migration
             $table->string('role_id');
             $table->time('expected_time_in')->nullable()->default(null);
             $table->time('expected_time_out')->nullable()->default(null);
+            $table->time('log_time_in')->nullable()->default(null);
+            $table->time('log_time_out')->nullable()->default(null);
             $table->string('reason');
             $table->timestamps();
             $table->index(['log_date', 'role_id']);

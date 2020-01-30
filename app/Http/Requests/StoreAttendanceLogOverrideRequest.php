@@ -44,6 +44,19 @@ class StoreAttendanceLogOverrideRequest extends FormRequest
             }
         }
 
+        if ($request->input('do_override_log')) {
+            $overrideLogType = $request->input('override_log');
+            $rules['override_log'] = 'required';
+            if ($overrideLogType == 'time_in_and_out') {
+                $rules['override_log_time_in'] = 'required';
+                $rules['override_log_time_out'] = 'required';
+            } elseif ($overrideLogType == 'time_in_only') {
+                $rules['override_log_time_in'] = 'required';
+            } else {
+                $rules['override_log_time_out'] = 'required';
+            }
+        }
+
         return $rules;
     }
 }

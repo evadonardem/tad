@@ -56,7 +56,9 @@ class BiometricAttendanceController extends Controller
         }
 
         // filtering parameters
-        $biometricIds = explode(',', $request->input('biometric_id'));
+        $biometricIds = $request->input('biometric_id')
+          ? explode(',', $request->input('biometric_id'))
+          : null;
         $name = $request->input('name');
         $startDate = Carbon::createFromFormat('Y-m-d', $request->input('start_date'))
           ->setTime(0, 0, 0)

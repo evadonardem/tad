@@ -114,7 +114,7 @@ class ReportsController extends Controller
                         $undertimeTimeDisplay = $this->formatTimeDisplay($undertimeSeconds);
 
                         $adjustmentSeconds = 0;
-                        $reason = $expectedTimeInOut[$userRole]['overrideReason'] . ' ';
+                        $reason = $expectedTimeInOut[$userRole]['overrideReason'];
                         $isAdjusted = false;
 
                         $attendanceLogAdjustment = AttendanceLogAdjustment::where([
@@ -352,7 +352,7 @@ class ReportsController extends Controller
                     $attendanceLogOverride->log_date . ' ' . $attendanceLogOverride->expected_time_out
                   );
                 }
-                $overrideReason = $attendanceLogOverride->reason;
+                $overrideReason = '(OVERRIDE: ' . $attendanceLogOverride->reason . ')';
             }
 
             $expectedTimeInSeconds = (((int)$expectedTimeIn->format('H')) * 3600)
