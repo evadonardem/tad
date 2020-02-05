@@ -28,6 +28,16 @@
           <div class="row">
             <div class="col">
               <div class="form-group">
+                <label>Show</label>
+                <select class="form-control" name="show">
+                  <option value="all">ALL</option>
+                  <option value="with_lates_or_undertime_only" selected>With Lates / Under Time ONLY</option>
+                </select>
+                <div class="invalid-feedback"></div>
+              </div>
+            </div>
+            <div class="col">
+              <div class="form-group">
                 <label>Start Date</label>
                 <input type="date" class="form-control" name="start_date">
                 <div class="invalid-feedback"></div>
@@ -184,7 +194,7 @@
                 pageSize: 'legal'
               }
             ],
-            'paging': false,
+            'paging': true,
             'searching': false,
             'ordering': false,
             'ajax': {
