@@ -28,11 +28,19 @@ class ReportsController extends Controller
     {
         $type = $request->input('type');
 
-        $startDate = Carbon::createFromFormat('Y-m-d', $request->input('start_date'))
-          ->setTime(0, 0, 0);
+        $show = $request->input('show');
+        $withLatesOrUndertimeOnly =
+          isset($show) && $show == 'with_lates_or_undertime_only';
 
-        $endDate = Carbon::createFromFormat('Y-m-d', $request->input('end_date'))
-          ->setTime(23, 59, 59);
+        $startDate = Carbon::createFromFormat(
+          'Y-m-d',
+           $request->input('start_date')
+        )->setTime(0, 0, 0);
+
+        $endDate = Carbon::createFromFormat(
+          'Y-m-d',
+          $request->input('end_date')
+        )->setTime(23, 59, 59);
 
         $biometricId = $type == 'individual'
           ? ($request->input('biometric_id') ? $request->input('biometric_id') : -1)
@@ -113,44 +121,52 @@ class ReportsController extends Controller
                         $undertimeSeconds = $undertimeSeconds > 0 ? $undertimeSeconds : 0;
                         $undertimeTimeDisplay = $this->formatTimeDisplay($undertimeSeconds);
 
-                        $adjustmentSeconds = 0;
-                        $reason = $expectedTimeInOut[$userRole]['overrideReason'];
-                        $isAdjusted = false;
 
-                        $attendanceLogAdjustment = AttendanceLogAdjustment::where([
-                          'biometric_id' => $user['biometric_id'],
-                          'log_date' => $date
-                        ])->first();
+                        if (
+                          $withLatesOrUndertimeOnly &&
+                          $lateSeconds == 0 && $undertimeSeconds == 0
+                        ) {
+                            continue;
+                        } else {
+                            $adjustmentSeconds = 0;
+                            $reason = $expectedTimeInOut[$userRole]['overrideReason'];
+                            $isAdjusted = false;
 
-                        if ($attendanceLogAdjustment) {
-                            $adjustmentSeconds = $attendanceLogAdjustment->adjustment_in_seconds;
-                            $reason .= $attendanceLogAdjustment->reason;
-                            $isAdjusted = true;
+                            $attendanceLogAdjustment = AttendanceLogAdjustment::where([
+                              'biometric_id' => $user['biometric_id'],
+                              'log_date' => $date
+                            ])->first();
+
+                            if ($attendanceLogAdjustment) {
+                                $adjustmentSeconds = $attendanceLogAdjustment->adjustment_in_seconds;
+                                $reason .= $attendanceLogAdjustment->reason;
+                                $isAdjusted = true;
+                            }
+
+                            $totalLateUndertimeSeconds = $lateSeconds + $undertimeSeconds - $adjustmentSeconds;
+                            $adjustmentTimeDisplay = $this->formatTimeDisplay($adjustmentSeconds);
+                            $totalLateUndertimeTimeDisplay = $this->formatTimeDisplay($totalLateUndertimeSeconds);
+
+                            $tmp = [
+                              'biometric_id' => $user['biometric_id'],
+                              'name' => $user['name'],
+                              'role_id' => $userRole,
+                              'date' => $date,
+                              'display_date' => $dateDisplay,
+                              'expected_time_in' => $expectedTimeInOut[$userRole]['expectedTimeIn']->format('h:i:s A'),
+                              'expected_time_out' => $expectedTimeInOut[$userRole]['expectedTimeOut']->format('h:i:s A'),
+                              'time_in' => $timeIn->format('h:i:s A'),
+                              'time_out' => $timeOut->format('h:i:s A'),
+                              'late' => $lateTimeDisplay,
+                              'undertime' => $undertimeTimeDisplay,
+                              'adjustment' => $adjustmentTimeDisplay,
+                              'total_late_undertime' => $totalLateUndertimeTimeDisplay,
+                              'reason' => $reason,
+                              'is_adjusted' => $isAdjusted
+                            ];
+
+                            $report[] = $tmp;
                         }
-
-                        $totalLateUndertimeSeconds = $lateSeconds + $undertimeSeconds - $adjustmentSeconds;
-                        $adjustmentTimeDisplay = $this->formatTimeDisplay($adjustmentSeconds);
-                        $totalLateUndertimeTimeDisplay = $this->formatTimeDisplay($totalLateUndertimeSeconds);
-
-                        $tmp = [
-                          'biometric_id' => $user['biometric_id'],
-                          'name' => $user['name'],
-                          'role_id' => $userRole,
-                          'date' => $date,
-                          'display_date' => $dateDisplay,
-                          'expected_time_in' => $expectedTimeInOut[$userRole]['expectedTimeIn']->format('h:i:s A'),
-                          'expected_time_out' => $expectedTimeInOut[$userRole]['expectedTimeOut']->format('h:i:s A'),
-                          'time_in' => $timeIn->format('h:i:s A'),
-                          'time_out' => $timeOut->format('h:i:s A'),
-                          'late' => $lateTimeDisplay,
-                          'undertime' => $undertimeTimeDisplay,
-                          'adjustment' => $adjustmentTimeDisplay,
-                          'total_late_undertime' => $totalLateUndertimeTimeDisplay,
-                          'reason' => $reason,
-                          'is_adjusted' => $isAdjusted
-                      ];
-
-                        $report[] = $tmp;
                     }
                 }
 

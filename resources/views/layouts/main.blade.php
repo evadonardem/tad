@@ -352,7 +352,7 @@
               seconds -= minutes * 60;
               seconds = seconds > 0 ? seconds : 0;
 
-              hours = String('0' + hours).slice(-2);
+              hours = hours < 10 ? String('0' + hours).slice(-2) : String(hours);
               minutes = String('0' + minutes).slice(-2);
               seconds = String('0' + seconds).slice(-2);
 
