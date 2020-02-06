@@ -73,6 +73,22 @@ class ReportsController extends Controller
             $attendanceLogs = $this->api->get('biometric/attendance-logs?' . $queryParams);
             $attendanceLogs = $attendanceLogs['data'];
 
+            // prepare attendance logs by biometric_id
+            $attendanceLogsByBiometricId = [];
+            foreach ($users as $user) {
+                $logs = array_filter($attendanceLogs, function ($log) use ($user) {
+                    return $log['biometric_id'] == $user['biometric_id'];
+                });
+                if (!empty($logs)) {
+                    $keys = array_keys($logs);
+                    foreach ($keys as $key) {
+                        unset($attendanceLogs[$key]);
+                    }
+                    $logs = array_values($logs);
+                }
+                $attendanceLogsByBiometricId[$user['biometric_id']] = $logs;
+            }
+
             while ($startDate <= $endDate) {
                 $date = $startDate->format('Y-m-d');
                 $dateDisplay = $startDate->format('D d-M-y');
@@ -80,14 +96,19 @@ class ReportsController extends Controller
                 $expectedTimeInOut = $this->expectedTimeInOut($date);
 
                 foreach ($users as $user) {
-                    $logs = array_filter($attendanceLogs, function ($log) use ($date, $user) {
+                    $logs = array_filter($attendanceLogsByBiometricId[$user['biometric_id']], function ($log) use ($date, $user) {
                         $logDate = Carbon::createFromFormat('Y-m-d H:i:s', $log['biometric_timestamp'])->format('Y-m-d');
                         return $log['biometric_id'] == $user['biometric_id'] && $logDate == $date;
                     });
 
                     // only include users with time-in/out
                     if (count($logs)>0) {
+                        $keys = array_keys($logs);
+                        foreach ($keys as $key) {
+                            unset($attendanceLogsByBiometricId[$user['biometric_id']][$key]);
+                        }
                         $logs = array_values($logs);
+
                         $timeIn = Carbon::createFromFormat('Y-m-d H:i:s', $logs[0]['biometric_timestamp']);
 
                         // for time-out pick first log in the afternoon
