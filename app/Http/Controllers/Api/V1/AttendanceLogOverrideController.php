@@ -82,22 +82,39 @@ class AttendanceLogOverrideController extends Controller
         foreach ($roles as $role) {
             $attributes['role_id'] = $role;
             AttendanceLogOverride::create($attributes);
-            $users = User::whereHas('roles', function ($query) use ($attributes, $role, $exceptUsers) {
-                if (isset($attributes['log_time_in'])) {
-                    $query->where('user_roles.created_at', '<=', $attributes['log_date'] . ' ' . $attributes['log_time_in']);
-                } elseif (isset($attributes['log_time_out'])) {
-                    $query->where('user_roles.created_at', '<=', $attributes['log_date'] . ' ' . $attributes['log_time_out']);
-                }
-                $query->where('roles.id', $role);
-                $query->orderBy('user_roles.created_at', 'desc');
-            });
 
+            $users = User::with('roles');
             if ($exceptUsers) {
                 $users->whereNotIn('biometric_id', $exceptUsers);
             }
             $users = $users->get();
 
-            $overrideUsers = $overrideUsers->merge($users);
+            foreach ($users as $user) {
+                $filteredRole = null;
+                if (isset($attributes['log_time_in'])) {
+                    $filteredRole = $user->roles()
+                      ->where(
+                        'user_roles.created_at',
+                        '<=',
+                        $attributes['log_date'] . ' ' . $attributes['log_time_in']
+                      )
+                      ->orderBy('user_roles.created_at', 'desc')
+                      ->first();
+                } elseif (isset($attributes['log_time_out'])) {
+                    $filteredRole = $user->roles()
+                      ->where(
+                        'user_roles.created_at',
+                        '<=',
+                        $attributes['log_date'] . ' ' . $attributes['log_time_out']
+                      )
+                      ->orderBy('user_roles.created_at', 'desc')
+                      ->first();
+                }
+
+                if ($filteredRole && $filteredRole->id == $role) {
+                    $overrideUsers->push($user);
+                }
+            }
         }
 
         $overrideUsersChunks = $overrideUsers->chunk(100);
