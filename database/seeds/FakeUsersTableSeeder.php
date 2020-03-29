@@ -15,10 +15,11 @@ class FakeUsersTableSeeder extends Seeder
     {
         $users = factory(User::class, 10)->create();
         $users->each(function ($user) {
-            $user->types()->create([
-              'type' => 'FACULTY',
-              'created_at' => '1970-01-02',
-              'updated_at' => '1970-01-02'
+            $user->roles()->sync([
+              'TEACHING' => [
+                   'created_at' => '1970-01-02',
+                   'updated_at' => '1970-01-02'
+               ]
             ]);
         });
     }
