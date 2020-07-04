@@ -31,7 +31,7 @@ class RolesController extends Controller
     {
         return Role::create([
           'id' => strtoupper($request->input('role_title')),
-          'description' => $request->input('role_description')
+          'description' => $request->input('role_description') ?: ''
         ]);
     }
 
@@ -46,7 +46,7 @@ class RolesController extends Controller
     {
         $role = Role::findOrFail($id);
         $role->update([
-          'description' => $request->input('role_description')
+          'description' => $request->input('role_description') ?: ''
         ]);
 
         return response()->noContent();

@@ -11,6 +11,37 @@ try {
     window.$ = window.jQuery = require('jquery');
 
     require('bootstrap');
+    require('datatables.net-bs4');
+    require('datatables.net-buttons-bs4');
+    require('datatables.net-buttons/js/buttons.html5.js');
+    require('datatables.net-fixedcolumns-bs4');
+    window.pdfMake = require('pdfmake/build/pdfmake');
+    window.pdfFonts = require('pdfmake/build/vfs_fonts');
+    window.pdfMake.vfs = window.pdfFonts.pdfMake.vfs;
+
+    window.pdfExportCommonSettings = function (doc) {
+        doc.content[1].table.widths =
+            Array(doc.content[1].table.body[0].length + 1)
+                .join('*')
+                .split('');
+        doc.styles.tableHeader.alignment = 'left';
+    };
+    window.exportButtonsBase = [
+        {
+            extend: 'csvHtml5',
+        },
+        {
+            extend: 'pdfHtml5',
+            pageSize: 'legal',
+            customize : window.pdfExportCommonSettings
+        }
+    ];
+
+    $.extend( true, $.fn.dataTable.defaults, {
+        dom: '<"data-table-wrapper"Blftipr>',
+        lengthChange: false
+    });
+
 } catch (e) {}
 
 /**

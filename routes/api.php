@@ -22,6 +22,10 @@ $api->version('v1', function ($api) {
 
     $api->post('login', 'App\Http\Controllers\Api\V1\AuthController@login');
 
+    $api->group(['prefix' => 'navigation-menu', 'middleware' => 'api.auth'], function ($api) {
+        $api->get('/', 'App\Http\Controllers\Api\V1\NavigationMenuController@index');
+    });
+
     $api->group(['middleware' => 'api.auth'], function ($api) {
         $api->post('logout', 'App\Http\Controllers\Api\V1\AuthController@logout');
         $api->post('refresh', 'App\Http\Controllers\Api\V1\AuthController@refresh');

@@ -25,7 +25,7 @@ class CommonTimeShiftsController extends Controller
             $count = AttendanceLog::whereDate(
                     'biometric_timestamp',
                     '>=',
-                    $timeShift->effectivity_date . ' 00:00:00'
+                    ($timeShift->effectivity_date ?: Carbon::now()->format('Y-m-d')) . ' 00:00:00'
                 )->get()->count();
 
             $timeShift->is_locked = $count > 0;
