@@ -2,10 +2,78 @@ import React, { Component } from 'react';
 import { Card, Jumbotron } from 'react-bootstrap';
 import cookie from 'react-cookies';
 import sanitize from 'sanitize-filename';
+import ManualTimeInOutModal from './ManualTimeInOutModal';
 
 export default class ReportsAbsencesNoTimeInOutSearchResult extends Component {
     constructor(props) {
         super(props);
+        this.handleCloseManualTimeInOutModal = this.handleCloseManualTimeInOutModal.bind(this);
+        this.handleSubmitManualTimeInOutModal = this.handleSubmitManualTimeInOutModal.bind(this);
+        this.state = {
+            isShowManualTimeInOutModal: false,
+            manualTimeInOutBiometricId: '',
+            manualTimeInOutName: '',
+            manualTimeInOutLogDate: '',
+        };
+    }
+
+    handleCloseManualTimeInOutModal(e) {
+        const self = this;
+        self.setState({
+            isShowManualTimeInOutModal: false,
+            manualTimeInOutBiometricId: '',
+            manualTimeInOutName: '',
+            manualTimeInOutLogDate: '',
+        });
+    }
+
+    handleSubmitManualTimeInOutModal(e) {
+        e.preventDefault();
+        const self = this;
+        const token = cookie.load('token');
+        const table = $('.data-table-wrapper').find('table').DataTable();
+        const modal = $('#manualTimeInOutModal');
+        const {
+            manualTimeInOutBiometricId: biometric_id,
+            manualTimeInOutName: name,
+            manualTimeInOutLogDate: log_date,
+        } = this.state;
+        const time_in = $(e.currentTarget).find('[name=time_in]').val();
+        const time_out = $(e.currentTarget).find('[name=time_out]').val();
+        const reason = $(e.currentTarget).find('[name=reason]').val();
+        const actionEndPoint = apiBaseUrl + '/override/manual-attendance-logs?token=' + token;
+
+        axios
+            .post(actionEndPoint, {
+                biometric_id,
+                log_date,
+                time_in,
+                time_out,
+                reason,
+            })
+            .then((response) => {
+                table.ajax.reload(null, false);
+                self.setState({
+                    isShowManualTimeInOutModal: false,
+                    manualTimeInOutBiometricId: '',
+                    manualTimeInOutName: '',
+                    manualTimeInOutLogDate: '',
+                });
+            })
+            .catch((error) => {
+                if (error.response) {
+                    const { response } = error;
+                    const { data } = response;
+                    const { errors } = data;
+                    for (const key in errors) {
+                        $('[name=' + key + ']', modal)
+                            .addClass('is-invalid')
+                            .closest('.form-group')
+                            .find('.invalid-feedback')
+                            .text(errors[key][0]);
+                    }
+               }
+            });
     }
 
     componentDidMount() {
@@ -59,13 +127,26 @@ export default class ReportsAbsencesNoTimeInOutSearchResult extends Component {
                     'data': null,
                     'render': function (data, type, row) {
                         var manualTimeInOutBtn = !row.time_in && !row.time_out
-                            ? '<a href="#" class="manual-time-in-out btn btn-warning" data-toggle="modal" data-target="#manualTimeInOutModal" data-date="' + row.date + '" data-biometric-id="' + row.biometric_id + '" data-name="' + row.name + '"><i class="fa fa-clock-o"></i></a>'
+                            ? '<a href="#" class="btn btn-warning manual-time-in-out" data-toggle="modal" data-target="#manualTimeInOutModal" data-date="' + row.date + '" data-biometric-id="' + row.biometric_id + '" data-name="' + row.name + '"><i class="fa fa-clock-o"></i></a>'
                             : null;
 
                         return manualTimeInOutBtn;
                     }
                 },
             ],
+        });
+
+        $(document).on('click', '.manual-time-in-out', function(e) {
+            e.preventDefault();
+            const manualTimeInOutBiometricId = $(e.currentTarget).data('biometric-id'); 
+            const manualTimeInOutName = $(e.currentTarget).data('name');
+            const manualTimeInOutLogDate = $(e.currentTarget).data('date');
+            self.setState({
+                isShowManualTimeInOutModal: true,
+                manualTimeInOutBiometricId,
+                manualTimeInOutName,
+                manualTimeInOutLogDate,
+            });
         });
     }
 
@@ -106,6 +187,12 @@ export default class ReportsAbsencesNoTimeInOutSearchResult extends Component {
             startDate,
             endDate,
         } = this.props;
+        const {
+            isShowManualTimeInOutModal,
+            manualTimeInOutBiometricId,
+            manualTimeInOutName,
+            manualTimeInOutLogDate,
+        } = this.state;
         
         const dataTable = $('.data-table-wrapper')
             .find('table')
@@ -172,6 +259,13 @@ export default class ReportsAbsencesNoTimeInOutSearchResult extends Component {
                         </table>
                     </Card.Body>
                 </Card>
+                <ManualTimeInOutModal
+                    isShow={isShowManualTimeInOutModal}
+                    biometricId={manualTimeInOutBiometricId}
+                    name={manualTimeInOutName}
+                    logDate={manualTimeInOutLogDate}
+                    handleClose={this.handleCloseManualTimeInOutModal}
+                    handleSubmit={this.handleSubmitManualTimeInOutModal}></ManualTimeInOutModal>
             </div>
         );
     }

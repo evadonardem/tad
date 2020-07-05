@@ -2,10 +2,83 @@ import React, { Component } from 'react';
 import { Card, Jumbotron } from 'react-bootstrap';
 import cookie from 'react-cookies';
 import sanitize from 'sanitize-filename';
+import LateUndertimeAdjustmentModal from './LateUndertimeAdjustmentModal';
 
 export default class ReportsLateUndertimeSearchResult extends Component {
     constructor(props) {
         super(props);
+        this.handleCloseAdjustmentLateUndertimeModal = this.handleCloseAdjustmentLateUndertimeModal.bind(this);
+        this.handleSubmitAdjustmentLateUndertimeModal = this.handleSubmitAdjustmentLateUndertimeModal.bind(this);
+        this.state = {
+            isShowAdjustmentLateUndertimeModal: false,
+            adjustmentBiometricId: '',
+            adjustmentLogDate: '',
+            adjustmentLate: '',
+            adjustmentUndertime: '',
+            adjustmentTotalLateUndertime: '',
+        };
+    }
+
+    handleCloseAdjustmentLateUndertimeModal(e) {
+        const self = this;
+        self.setState({
+            isShowAdjustmentLateUndertimeModal: false,
+            adjustmentBiometricId: '',
+            adjustmentLogDate: '',
+            adjustmentLate: '',
+            adjustmentUndertime: '',
+            adjustmentTotalLateUndertime: '',
+        });
+    }
+
+    handleSubmitAdjustmentLateUndertimeModal(e) {
+        e.preventDefault();
+        const self = this;
+        const token = cookie.load('token');
+        const table = $('.data-table-wrapper').find('table').DataTable();
+        const modal = $('#adjustmentLateUndertimeModal');
+        const {
+            adjustmentBiometricId: biometric_id,
+            adjustmentLogDate: log_date
+        } = this.state;
+        const adjustment = $(e.currentTarget).find('[name=adjustment]').val();
+        const total_late_undertime = $(e.currentTarget).find('[name=total_late_undertime]').val();
+        const reason = $(e.currentTarget).find('[name=reason]').val();
+        const actionEndPoint = apiBaseUrl + '/override/adjustment-late-undertime?token=' + token;
+
+        axios
+            .post(actionEndPoint, {
+                biometric_id,
+                log_date,
+                adjustment,
+                total_late_undertime,
+                reason,
+            })
+            .then((response) => {
+                table.ajax.reload(null, false);
+                self.setState({
+                    isShowAdjustmentLateUndertimeModal: false,
+                    adjustmentBiometricId: '',
+                    adjustmentLogDate: '',
+                    adjustmentLate: '',
+                    adjustmentUndertime: '',
+                    adjustmentTotalLateUndertime: '',
+                });
+            })
+            .catch((error) => {
+                if (error.response) {
+                    const { response } = error;
+                    const { data } = response;
+                    const { errors } = data;
+                    for (const key in errors) {
+                        $('[name=' + key + ']', modal)
+                            .addClass('is-invalid')
+                            .closest('.form-group')
+                            .find('.invalid-feedback')
+                            .text(errors[key][0]);
+                    }
+               }
+            });
     }
 
     componentDidMount() {
@@ -61,9 +134,7 @@ export default class ReportsLateUndertimeSearchResult extends Component {
                     'render': function (data, type, row) {
                         var manualTimeInOutBtn = !row.is_adjusted
                             ? '<a href="#" ' +
-                                    'class="adjustment-late-undertime btn btn-warning" ' +
-                                    'data-toggle="modal" '+
-                                    'data-target="#adjustmentLateUndertimeModal" ' +
+                                    'class="btn btn-warning adjustment-late-undertime" ' +
                                     'data-date="' + row.date + '" ' +
                                     'data-biometric-id="' + row.biometric_id + '" ' +
                                     'data-name="' + row.name + '" ' +
@@ -153,6 +224,24 @@ export default class ReportsLateUndertimeSearchResult extends Component {
             
         });
 
+        $(document).on('click', '.adjustment-late-undertime', function(e) {
+            e.preventDefault();
+            const adjustmentBiometricId = $(e.currentTarget).data('biometric-id');
+            const adjustmentLogDate = $(e.currentTarget).data('date');
+            const adjustmentLate = $(e.currentTarget).data('late');
+            const adjustmentUndertime = $(e.currentTarget).data('undertime');
+            const adjustmentTotalLateUndertime = $(e.currentTarget).data('total-late-undertime');
+            self.setState({
+                isShowAdjustmentLateUndertimeModal: true,
+            });
+            self.setState({
+                adjustmentBiometricId,
+                adjustmentLogDate,
+                adjustmentLate,
+                adjustmentUndertime,
+                adjustmentTotalLateUndertime,
+            })
+        });
     }
 
     componentWillUnmount() {
@@ -176,7 +265,7 @@ export default class ReportsLateUndertimeSearchResult extends Component {
             `${(roleId && !biometricId) ? ` (${roleId})` : '' }`;
         const label = `${user}${user ? ' ' : ''}From: ${startDate} To: ${endDate}`;
         
-        return `Attendance Logs ${label}`;
+        return `Absences (No Time-In/Out) Report -- ${label}`;
     }
 
     initExportFilename()
@@ -192,6 +281,14 @@ export default class ReportsLateUndertimeSearchResult extends Component {
             startDate,
             endDate,
         } = this.props;
+
+        const {
+            isShowAdjustmentLateUndertimeModal,
+            adjustmentLogDate,
+            adjustmentLate,
+            adjustmentUndertime,
+            adjustmentTotalLateUndertime,
+        } = this.state;
         
         const dataTable = $('.data-table-wrapper')
             .find('table')
@@ -276,6 +373,15 @@ export default class ReportsLateUndertimeSearchResult extends Component {
                         </table>
                     </Card.Body>
                 </Card>
+
+                <LateUndertimeAdjustmentModal
+                    isShow={isShowAdjustmentLateUndertimeModal}
+                    logDate={adjustmentLogDate}
+                    late={adjustmentLate}
+                    undertime={adjustmentUndertime}
+                    totalLateUndertime={adjustmentTotalLateUndertime}
+                    handleClose={this.handleCloseAdjustmentLateUndertimeModal}
+                    handleSubmit={this.handleSubmitAdjustmentLateUndertimeModal}></LateUndertimeAdjustmentModal>
             </div>
         );
     }
