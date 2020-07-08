@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { Alert, Button, Modal, Form } from 'react-bootstrap';
+import { Alert, Button, ButtonGroup, Modal, Form } from 'react-bootstrap';
 import CommonDropdownSelectSingleRoles from './CommonDropdownSelectSingleRoles';
 
 export default class AddEditUserModal extends Component {
@@ -77,12 +77,14 @@ export default class AddEditUserModal extends Component {
                     {
                         !isError &&
                         <Modal.Footer>
-                            <Button variant="secondary" onClick={handleClose}>
-                                Cancel
-                            </Button>
-                            <Button variant="primary" type="submit">
-                                { !isEdit ? 'Save' : 'Update' }
-                            </Button>
+                            <ButtonGroup>
+                                <Button variant="primary" type="submit">
+                                    { !isEdit ? 'Save' : 'Update' }
+                                </Button>
+                                <Button variant="secondary" onClick={handleClose}>
+                                    Cancel
+                                </Button>
+                            </ButtonGroup>                            
                         </Modal.Footer>
                     }
                 </Form>

@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { Button, Card, Form, Modal } from 'react-bootstrap';
+import { Button, Card, Form, Modal, ButtonGroup } from 'react-bootstrap';
 import cookie from 'react-cookies';
 import CommonDeleteModal from './CommonDeleteModal';
 
@@ -255,12 +255,14 @@ export default class SettingsUserRoles extends Component {
                             </Form.Group>
                         </Modal.Body>
                         <Modal.Footer>
-                            <Button variant="secondary" onClick={this.handleCloseAddEditUserRole}>
-                                Cancel
-                            </Button>
-                            <Button variant="primary" type="submit">
-                                {addEditUserRoleModalSubmitButtonLabel}
-                            </Button>
+                            <ButtonGroup>
+                                <Button variant="primary" type="submit">
+                                    {addEditUserRoleModalSubmitButtonLabel}
+                                </Button>
+                                <Button variant="secondary" onClick={this.handleCloseAddEditUserRole}>
+                                    Cancel
+                                </Button>
+                            </ButtonGroup>
                         </Modal.Footer>
                     </Form>
                 </Modal>

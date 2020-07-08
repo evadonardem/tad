@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { Alert, Button, Modal, Form } from 'react-bootstrap';
+import { Alert, Button, ButtonGroup, Modal, Form } from 'react-bootstrap';
 
 export default class LateUndertimeAdjustmentModal extends Component {
     constructor(props) {
@@ -117,12 +117,14 @@ export default class LateUndertimeAdjustmentModal extends Component {
                         </Form.Group>
                     </Modal.Body>
                     <Modal.Footer>
-                        <Button variant="secondary" onClick={this.handleClose}>
-                            Cancel
-                        </Button>
-                        <Button variant="primary" type="submit">
-                            Save
-                        </Button>
+                        <ButtonGroup>
+                            <Button variant="primary" type="submit">
+                                Save
+                            </Button>
+                            <Button variant="secondary" onClick={this.handleClose}>
+                                Cancel
+                            </Button>
+                        </ButtonGroup>
                     </Modal.Footer>
                 </Form>
             </Modal>

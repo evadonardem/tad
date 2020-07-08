@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { Alert, Button, Modal } from 'react-bootstrap';
+import { Alert, Button, ButtonGroup, Modal } from 'react-bootstrap';
 
 export default class CommonDeleteModal extends Component {
     constructor(props) {
@@ -45,12 +45,14 @@ export default class CommonDeleteModal extends Component {
                 {
                     !isDeleteError &&
                     <Modal.Footer>
-                        <Button variant="secondary" onClick={handleClose}>
-                            Cancel
-                        </Button>
-                        <Button variant="primary" onClick={handleSubmit}>
-                            Yes
-                        </Button>
+                        <ButtonGroup>
+                            <Button variant="primary" onClick={handleSubmit}>
+                                Yes
+                            </Button>
+                            <Button variant="secondary" onClick={handleClose}>
+                                Cancel
+                            </Button>
+                        </ButtonGroup>
                     </Modal.Footer>
                 }
             </Modal>

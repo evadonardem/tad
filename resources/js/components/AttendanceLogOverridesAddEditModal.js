@@ -1,7 +1,9 @@
 import React, { Component } from 'react';
 import cookie from 'react-cookies';
-import { Alert, Button, Modal, Form } from 'react-bootstrap';
+import { v4 as uuidv4 } from 'uuid';
+import { Button, ButtonGroup, Modal, Form } from 'react-bootstrap';
 import CommonDropdownSelectSingleRoles from './CommonDropdownSelectSingleRoles';
+import CommonDropdownSelectSingleUsers from './CommonDropdownSelectSingleUsers';
 
 export default class AttendanceLogOverridesAddEditModal extends Component {
     constructor(props) {
@@ -12,13 +14,21 @@ export default class AttendanceLogOverridesAddEditModal extends Component {
         this.handleChangeRole = this.handleChangeRole.bind(this);
         this.handleChangeOverrideExpected = this.handleChangeOverrideExpected.bind(this);
         this.handleChangeOverrideExpectedType = this.handleChangeOverrideExpectedType.bind(this);
+        this.handleChangeOverrideLog = this.handleChangeOverrideLog.bind(this);
+        this.handleChangeOverrideLogType = this.handleChangeOverrideLogType.bind(this);
+        this.handleChangeExceptUser = this.handleChangeExceptUser.bind(this);
         this.state = {
-            isOverrideExpected: false,
             overrideDate: '',
-            role: {},
+            role: null,
+            isOverrideExpected: false,
             overrideExpectedType: 'time_in_and_out',
             overrideExpectedTimeIn: '',
             overrideExpectedTimeOut: '',
+            isOverrideLog: false,
+            overrideLogType: 'time_in_and_out',
+            overrideLogTimeIn: '',
+            overrideLogTimeOut: '',
+            overrideLogExceptUsers: null,
             overrideReason: '',
             errors: {},
         };
@@ -27,12 +37,18 @@ export default class AttendanceLogOverridesAddEditModal extends Component {
     handleClose(e) {
         const self = this;
         const { handleClose } = self.props;
-        self.setState({
-            isOverrideExpected: false,
+        self.setState({           
             overrideDate: '',
+            role: null,
+            isOverrideExpected: false,
             overrideExpectedType: 'time_in_and_out',
             overrideExpectedTimeIn: '',
             overrideExpectedTimeOut: '',
+            isOverrideLog: false,
+            overrideLogType: 'time_in_and_out',
+            overrideLogTimeIn: '',
+            overrideLogTimeOut: '',
+            overrideLogExceptUsers: null,
             overrideReason: '',
             errors: {},
         });
@@ -52,26 +68,47 @@ export default class AttendanceLogOverridesAddEditModal extends Component {
             overrideExpectedType,
             overrideExpectedTimeIn,
             overrideExpectedTimeOut,
+            isOverrideLog,
+            overrideLogType,
+            overrideLogTimeIn,
+            overrideLogTimeOut,
+            overrideLogExceptUsers,
             overrideReason,
         } = self.state;
+
+        let exceptUsers = [];
+        if (overrideLogExceptUsers) {
+            exceptUsers = overrideLogExceptUsers.map((item) => item.value);
+        }
 
         axios
             .post(`${apiBaseUrl}/override/attendance-logs?token=${token}`, {
                 override_date: overrideDate,
                 role: role ? role.value : null,
                 do_override_expected: isOverrideExpected,
+                override_expected: overrideExpectedType,
                 override_expected_time_in: overrideExpectedTimeIn,
                 override_expected_time_out: overrideExpectedTimeOut,
-                override_expected: overrideExpectedType,
+                do_override_log: isOverrideLog,
+                override_log: overrideLogType,
+                override_log_time_in: overrideLogTimeIn,
+                override_log_time_out: overrideLogTimeOut,
+                override_log_except_users: exceptUsers,
                 override_reason: overrideReason,
             })
             .then((response) => {
                 self.setState({
-                    isOverrideExpected: false,
                     overrideDate: '',
+                    role: null,
+                    isOverrideExpected: false,
                     overrideExpectedType: 'time_in_and_out',
                     overrideExpectedTimeIn: '',
                     overrideExpectedTimeOut: '',
+                    isOverrideLog: false,
+                    overrideLogType: 'time_in_and_out',
+                    overrideLogTimeIn: '',
+                    overrideLogTimeOut: '',
+                    overrideLogExceptUsers: null,
                     overrideReason: '',
                     errors: {},
                 });
@@ -96,6 +133,10 @@ export default class AttendanceLogOverridesAddEditModal extends Component {
             self.setState({ overrideExpectedTimeIn: value });
         } else if (name === 'override_expected_time_out') {
             self.setState({ overrideExpectedTimeOut: value });
+        } else if (name === 'override_log_time_in') {
+            self.setState({ overrideLogTimeIn: value });
+        } else if (name === 'override_log_time_out') {
+            self.setState({ overrideLogTimeOut: value });
         } else if (name === 'override_reason') {
             self.setState({ overrideReason: value });
         }
@@ -120,6 +161,25 @@ export default class AttendanceLogOverridesAddEditModal extends Component {
         });
     }
 
+    handleChangeOverrideLog(e) {
+        const self = this;
+        const isOverrideLog = $(e.currentTarget).is(':checked');
+        self.setState({ isOverrideLog });
+    }
+
+    handleChangeOverrideLogType(e) {
+        const self = this;
+        const overrideLogType = $(e.currentTarget).val();
+        self.setState({
+            overrideLogType,
+        });
+    }
+
+    handleChangeExceptUser(e) {
+        const self = this;
+        self.setState({ overrideLogExceptUsers: e });
+    }
+
     render() {
         const {
             isShow,
@@ -127,11 +187,19 @@ export default class AttendanceLogOverridesAddEditModal extends Component {
         } = this.props;
 
         const {
-            isOverrideExpected,
             role,
+            isOverrideExpected,
             overrideExpectedType,
+            isOverrideLog,
+            overrideLogType,
+            overrideLogExceptUsers,
             errors,
         } = this.state;
+
+        let userFilters = {};
+        if (role) {
+            userFilters.role_id = role.value;
+        } 
 
         return (
             <Modal
@@ -249,6 +317,102 @@ export default class AttendanceLogOverridesAddEditModal extends Component {
                             </Form.Group>
                         }
                         
+                        <Form.Group controlId="overrideLog">
+                            <Form.Check
+                                type="checkbox"
+                                label="Override Log"
+                                name="do_override_log"
+                                onChange={this.handleChangeOverrideLog}></Form.Check>
+                            <Form.Control.Feedback type="invalid"></Form.Control.Feedback>
+                        </Form.Group>
+                        {
+                            isOverrideLog &&
+                            <div>
+                                <Form.Group>
+                                    <Form.Check
+                                        type="radio"
+                                        inline
+                                        id="override_log_time_in_and_out"
+                                        label="Time-in and out"
+                                        name="override_log"
+                                        value="time_in_and_out"
+                                        checked={overrideLogType==='time_in_and_out'}
+                                        onChange={this.handleChangeOverrideLogType}></Form.Check>
+                                    <Form.Control.Feedback type="invalid"></Form.Control.Feedback>
+                                    <Form.Check
+                                        type="radio"
+                                        inline
+                                        id="override_log_time_in_only"
+                                        label="Time-in only"
+                                        name="override_log"
+                                        value="time_in_only"
+                                        checked={overrideLogType==='time_in_only'}
+                                        onChange={this.handleChangeOverrideLogType}></Form.Check>
+                                    <Form.Control.Feedback type="invalid"></Form.Control.Feedback>
+                                    <Form.Check
+                                        type="radio"
+                                        inline
+                                        id="override_log_time_out_only"
+                                        label="Time-out only"
+                                        name="override_log"
+                                        value="time_out_only"
+                                        checked={overrideLogType==='time_out_only'}
+                                        onChange={this.handleChangeOverrideLogType}></Form.Check>
+                                    <Form.Control.Feedback type="invalid"></Form.Control.Feedback>
+                                </Form.Group>
+                            </div>
+                        }
+                        {
+                            isOverrideLog && 
+                            (overrideLogType === 'time_in_and_out' || overrideLogType === 'time_in_only') &&
+                            <Form.Group>
+                                <Form.Label>Log Time-in:</Form.Label>
+                                <Form.Control
+                                    type="time"
+                                    name="override_log_time_in"
+                                    defaultValue=""
+                                    isInvalid={errors && errors.override_log_time_in}
+                                    onChange={this.handleChangeText}></Form.Control>
+                                <Form.Control.Feedback type="invalid">
+                                    {
+                                        errors &&
+                                        errors.override_log_time_in &&
+                                        errors.override_log_time_in[0]
+                                    }
+                                </Form.Control.Feedback>
+                            </Form.Group>
+                        }
+                        {
+                            isOverrideLog &&
+                            (overrideLogType === 'time_in_and_out' || overrideLogType === 'time_out_only') &&
+                            <Form.Group>
+                                <Form.Label>Log Time-out:</Form.Label>
+                                <Form.Control
+                                    type="time"
+                                    name="override_log_time_out"
+                                    defaultValue=""
+                                    isInvalid={errors && errors.override_log_time_out}
+                                    onChange={this.handleChangeText}></Form.Control>
+                                <Form.Control.Feedback type="invalid">
+                                    {
+                                        errors &&
+                                        errors.override_log_time_out &&
+                                        errors.override_log_time_out[0]
+                                    }
+                                </Form.Control.Feedback>
+                            </Form.Group>
+                        }
+                        {
+                            isOverrideLog && role &&
+                            <CommonDropdownSelectSingleUsers
+                                key={uuidv4()}
+                                label="Except users:"
+                                name="override_log_except_users[]"
+                                selectedUser={overrideLogExceptUsers}
+                                isMulti
+                                filters={userFilters}
+                                handleChange={this.handleChangeExceptUser}/>
+                        }
 
                         <Form.Group>
                             <Form.Label>Reason:</Form.Label>
@@ -264,12 +428,14 @@ export default class AttendanceLogOverridesAddEditModal extends Component {
                         </Form.Group>
                     </Modal.Body>
                      <Modal.Footer>
-                        <Button variant="primary" type="submit">
-                            { !isEdit ? 'Save' : 'Update' }
-                        </Button>
-                        <Button variant="secondary" onClick={this.handleClose}>
-                            Cancel
-                        </Button>
+                        <ButtonGroup>
+                            <Button variant="primary" type="submit">
+                                { !isEdit ? 'Save' : 'Update' }
+                            </Button>
+                            <Button variant="secondary" onClick={this.handleClose}>
+                                Cancel
+                            </Button>
+                        </ButtonGroup>                        
                     </Modal.Footer>
                 </Form>
             </Modal>

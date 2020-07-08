@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { Button, Modal, Form } from 'react-bootstrap';
+import { Button, ButtonGroup, Modal, Form } from 'react-bootstrap';
 
 export default class ManualTimeInOutModal extends Component {
     constructor(props) {
@@ -81,12 +81,14 @@ export default class ManualTimeInOutModal extends Component {
                         </Form.Group>
                     </Modal.Body>
                     <Modal.Footer>
-                        <Button variant="primary" type="submit">
-                            Save
-                        </Button>
-                        <Button variant="secondary" onClick={this.handleClose}>
-                            Cancel
-                        </Button>
+                        <ButtonGroup>
+                            <Button variant="primary" type="submit">
+                                Save
+                            </Button>
+                            <Button variant="secondary" onClick={this.handleClose}>
+                                Cancel
+                            </Button>
+                        </ButtonGroup>                        
                     </Modal.Footer>
                 </Form>
             </Modal>

@@ -177,6 +177,60 @@ class AttendanceLogOverrideController extends Controller
      */
     public function destroy($id)
     {
-        //
+        $attendanceLogOverride = AttendanceLogOverride::find($id);
+        $overrideUsers = collect();
+        $role = $attendanceLogOverride->role_id;
+        $users = User::with('roles')->get();
+
+        foreach ($users as $user) {
+            $filteredRole = null;
+            if (isset($attendanceLogOverride->log_time_in)) {
+                $filteredRole = $user->roles()
+                    ->where(
+                        'user_roles.created_at',
+                        '<=',
+                        $attendanceLogOverride->log_date . ' ' . $attendanceLogOverride->log_time_in
+                    )
+                    ->orderBy('user_roles.created_at', 'desc')
+                    ->first();
+            } elseif (isset($attendanceLogOverride->log_time_out)) {
+                $filteredRole = $user->roles()
+                    ->where(
+                        'user_roles.created_at',
+                        '<=',
+                        $attendanceLogOverride->log_date . ' ' . $attendanceLogOverride->log_time_out
+                    )
+                    ->orderBy('user_roles.created_at', 'desc')
+                    ->first();
+            }
+
+            if ($filteredRole && $filteredRole->id == $role) {
+                $overrideUsers->push($user);
+            }
+        }
+
+        $overrideUsersChunks = $overrideUsers->chunk(100);
+        foreach ($overrideUsersChunks as $overrideUsers) {
+            foreach ($overrideUsers as $user) {
+                if (isset($attendanceLogOverride->log_time_in)) {
+                    AttendanceLog::where([
+                      'biometric_id' => $user->biometric_id,
+                      'biometric_timestamp' => $attendanceLogOverride->log_date . ' ' . $attendanceLogOverride->log_time_in,
+                      'biometric_name' => '#OVERRIDE#',
+                    ])->delete();
+                }
+                if (isset($attendanceLogOverride->log_time_out)) {
+                    AttendanceLog::where([
+                        'biometric_id' => $user->biometric_id,
+                        'biometric_timestamp' => $attendanceLogOverride->log_date . ' ' . $attendanceLogOverride->log_time_out,
+                        'biometric_name' => '#OVERRIDE#',
+                    ])->delete();
+                }
+            }
+        }
+
+        $attendanceLogOverride->delete();
+
+        return response()->noContent();
     }
 }

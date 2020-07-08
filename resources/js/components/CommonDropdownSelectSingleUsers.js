@@ -35,15 +35,21 @@ export default class CommonDropdownSelectSingleUsers extends Component {
     }
 
     render() {
-        const { name, handleChange, selectedUser } = this.props;
+        const { label, name, handleChange, selectedUser, isMulti } = this.props;
         const { options } = this.state;
 
         return (
             <Form.Group>
-                <Form.Label>Select User:</Form.Label>
+                <Form.Label>{ label ? label : 'Select User:' }</Form.Label>
                 {
                     options &&
-                    <Select name={name} isClearable options={options} value={selectedUser} onChange={handleChange}/>
+                    <Select
+                        name={name}
+                        isClearable
+                        isMulti={isMulti}
+                        options={options}
+                        value={selectedUser}
+                        onChange={handleChange}/>
                 }
             </Form.Group>
         );

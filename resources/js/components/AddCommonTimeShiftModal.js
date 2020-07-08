@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { Alert, Button, Modal, Form } from 'react-bootstrap';
+import { Alert, Button, ButtonGroup, Modal, Form } from 'react-bootstrap';
 import CommonDropdownSelectSingleRoles from './CommonDropdownSelectSingleRoles';
 
 export default class AddCommonTimeShiftModal extends Component {
@@ -76,12 +76,14 @@ export default class AddCommonTimeShiftModal extends Component {
                     {
                         !isError &&
                         <Modal.Footer>
-                            <Button variant="secondary" onClick={handleClose}>
-                                Cancel
-                            </Button>
-                            <Button variant="primary" type="submit">
-                                Save
-                            </Button>
+                            <ButtonGroup>
+                                <Button variant="primary" type="submit">
+                                    Save
+                                </Button>
+                                <Button variant="secondary" onClick={handleClose}>
+                                    Cancel
+                                </Button>
+                            </ButtonGroup>
                         </Modal.Footer>
                     }
                 </Form>
