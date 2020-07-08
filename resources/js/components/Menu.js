@@ -18,6 +18,7 @@ import SettingsCommonTimeShifts from './SettingsCommonTimeShifts';
 import SettingsUserRoles from './SettingsUserRoles';
 import ReportsLateUndertime from './ReportsLateUndertime';
 import ReportsAbsencesNoTimeInOut from './ReportsAbsencesNoTimeInOut';
+import AttendanceLogOverrides from './AttendanceLogOverrides';
 
 export default class Menu extends Component {
     constructor(props) {
@@ -112,6 +113,9 @@ export default class Menu extends Component {
                                 break;
                             case '/attendance-logs':
                                 routeToComponent = <AttendanceLogs />;
+                                break;
+                            case '/attendance-log-overrides':
+                                routeToComponent = <AttendanceLogOverrides />;
                                 break;
                             case '/reports':
                                 routeToComponent = <Reports />;

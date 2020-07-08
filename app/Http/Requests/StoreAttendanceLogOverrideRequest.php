@@ -27,7 +27,7 @@ class StoreAttendanceLogOverrideRequest extends FormRequest
     {
         $rules = [
             'override_date' => 'required',
-            'roles' => 'required',
+            'role' => 'required',
             'override_reason' => 'required'
         ];
 

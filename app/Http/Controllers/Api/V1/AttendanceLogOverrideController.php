@@ -78,42 +78,41 @@ class AttendanceLogOverrideController extends Controller
 
         $exceptUsers = $request->input('override_log_except_users');
         $overrideUsers = collect();
-        $roles = $request->input('roles');
-        foreach ($roles as $role) {
-            $attributes['role_id'] = $role;
-            AttendanceLogOverride::create($attributes);
+        $role = $request->input('role');
+        
+        $attributes['role_id'] = $role;
+        AttendanceLogOverride::create($attributes);
 
-            $users = User::with('roles');
-            if ($exceptUsers) {
-                $users->whereNotIn('biometric_id', $exceptUsers);
+        $users = User::with('roles');
+        if ($exceptUsers) {
+            $users->whereNotIn('biometric_id', $exceptUsers);
+        }
+        $users = $users->get();
+
+        foreach ($users as $user) {
+            $filteredRole = null;
+            if (isset($attributes['log_time_in'])) {
+                $filteredRole = $user->roles()
+                    ->where(
+                    'user_roles.created_at',
+                    '<=',
+                    $attributes['log_date'] . ' ' . $attributes['log_time_in']
+                    )
+                    ->orderBy('user_roles.created_at', 'desc')
+                    ->first();
+            } elseif (isset($attributes['log_time_out'])) {
+                $filteredRole = $user->roles()
+                    ->where(
+                    'user_roles.created_at',
+                    '<=',
+                    $attributes['log_date'] . ' ' . $attributes['log_time_out']
+                    )
+                    ->orderBy('user_roles.created_at', 'desc')
+                    ->first();
             }
-            $users = $users->get();
 
-            foreach ($users as $user) {
-                $filteredRole = null;
-                if (isset($attributes['log_time_in'])) {
-                    $filteredRole = $user->roles()
-                      ->where(
-                        'user_roles.created_at',
-                        '<=',
-                        $attributes['log_date'] . ' ' . $attributes['log_time_in']
-                      )
-                      ->orderBy('user_roles.created_at', 'desc')
-                      ->first();
-                } elseif (isset($attributes['log_time_out'])) {
-                    $filteredRole = $user->roles()
-                      ->where(
-                        'user_roles.created_at',
-                        '<=',
-                        $attributes['log_date'] . ' ' . $attributes['log_time_out']
-                      )
-                      ->orderBy('user_roles.created_at', 'desc')
-                      ->first();
-                }
-
-                if ($filteredRole && $filteredRole->id == $role) {
-                    $overrideUsers->push($user);
-                }
+            if ($filteredRole && $filteredRole->id == $role) {
+                $overrideUsers->push($user);
             }
         }
 

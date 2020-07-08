@@ -28,6 +28,11 @@ class NavigationMenuController extends Controller
                     'to' => '/attendance-logs'
                 ],
                 [
+                    'label' => 'Overrides',
+                    'icon' => 'fa fa-calendar-plus-o',
+                    'to' => '/attendance-log-overrides'
+                ],
+                [
                     'label' => 'Reports',
                     'icon' => 'fa fa-file-text',
                     'to' => '/reports'
