@@ -120,27 +120,31 @@ class AttendanceLogOverrideController extends Controller
         foreach ($overrideUsersChunks as $overrideUsers) {
             foreach ($overrideUsers as $user) {
                 if (isset($attributes['log_time_in'])) {
-                    AttendanceLog::where([
+                    $similarAttendanceLog = AttendanceLog::where([
                       'biometric_id' => $user->biometric_id,
                       'biometric_timestamp' => $attributes['log_date'] . ' ' . $attributes['log_time_in']
-                    ])->delete();
-                    AttendanceLog::create([
-                      'biometric_id' => $user->biometric_id,
-                      'biometric_name' => '#OVERRIDE#',
-                      'biometric_timestamp' => $attributes['log_date'] . ' ' . $attributes['log_time_in']
-                    ]);
+                    ])->first();
+                    if (!$similarAttendanceLog) {
+                        AttendanceLog::create([
+                            'biometric_id' => $user->biometric_id,
+                            'biometric_name' => '#OVERRIDE#',
+                            'biometric_timestamp' => $attributes['log_date'] . ' ' . $attributes['log_time_in']
+                        ]);
+                    }
                 }
 
                 if (isset($attributes['log_time_out'])) {
-                    AttendanceLog::where([
+                    $similarAttendanceLog = AttendanceLog::where([
                       'biometric_id' => $user->biometric_id,
                       'biometric_timestamp' => $attributes['log_date'] . ' ' . $attributes['log_time_out']
-                    ])->delete();
-                    AttendanceLog::create([
-                      'biometric_id' => $user->biometric_id,
-                      'biometric_name' => '#OVERRIDE#',
-                      'biometric_timestamp' => $attributes['log_date'] . ' ' . $attributes['log_time_out']
-                    ]);
+                    ])->first();
+                    if (!$similarAttendanceLog) {
+                        AttendanceLog::create([
+                            'biometric_id' => $user->biometric_id,
+                            'biometric_name' => '#OVERRIDE#',
+                            'biometric_timestamp' => $attributes['log_date'] . ' ' . $attributes['log_time_out']
+                        ]);
+                    }
                 }
             }
         }
