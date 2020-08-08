@@ -25,11 +25,12 @@ class StoreAttendanceLogOverrideRequest extends FormRequest
      */
     public function rules(Request $request)
     {
-        $rules = [
-            'override_date' => 'required',
-            'role' => 'required',
-            'override_reason' => 'required'
-        ];
+        $rules = ['override_reason' => 'required'];
+
+        if (!$request->route('attendance_log')) {
+            $rules['override_date'] = 'required';
+            $rules['role'] = 'required';
+        }
 
         if ($request->input('do_override_expected')) {
             $overrideExpectedType = $request->input('override_expected');

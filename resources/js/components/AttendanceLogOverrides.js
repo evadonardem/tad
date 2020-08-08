@@ -18,7 +18,13 @@ export default class AttendanceLogOverrides extends Component {
             attendanceLogOverrideId: '',
             attendanceLogOverrideDate: '',
             attendanceLogOverrideRole: '',
+            attendanceLogOverrideExpectedTimeIn: '',
+            attendanceLogOverrideExpectedTimeOut: '',
+            attendanceLogOverrideLogTimeIn: '',
+            attendanceLogOverrideLogTimeOut: '',
+            attendanceLogOverrideReason: '',
             isShowAddEditAttendanceLogOverrideModal: false,
+            isEditOverride: false,
             isDeleteOverride: false,
         };
     }
@@ -39,6 +45,7 @@ export default class AttendanceLogOverrides extends Component {
             ordering: false,
             searching: false,
             buttons: exportButtons,
+            responsive: true,
             columns: [
                 { 'data': 'log_date'},
                 { 'data': 'role_id' },
@@ -51,9 +58,14 @@ export default class AttendanceLogOverrides extends Component {
                     'data': null,
                     'render': function (data, type, row) {
                         const actionButtons = $('<div/>');
-                        const editButton = $('<button type="button" class="btn btn-primary" data-id="' + row.id + '" data-log-date="' + row.log_date + '"/>')
+                        const editButton = $('<button type="button" class="btn btn-primary edit-override" data-id="' + row.id +
+                            '" data-log-date="' + row.log_date + '" data-role="' + row.role_id +
+                            '" data-expected-time-in="' + row.expected_time_in + '" data-expected-time-out="' + row.expected_time_out +
+                            '" data-log-time-in="' + row.log_time_in + '" data-log-time-out="' + row.log_time_out +
+                            '" data-reason="' + row.reason + '"/>')
                             .html('<i class="fa fa-edit"></i>');
-                        const deleteButton = $('<button type="button" class="btn btn-warning delete-override" data-id="' + row.id + '" data-log-date="' + row.log_date + '" data-role="' + row.role_id + '"/>')
+                        const deleteButton = $('<button type="button" class="btn btn-warning delete-override" data-id="' + row.id +
+                            '" data-log-date="' + row.log_date + '" data-role="' + row.role_id + '"/>')
                             .html('<i class="fa fa-trash"></i>');
                         actionButtons.append(editButton).append('&nbsp;').append(deleteButton);
                         
@@ -63,7 +75,31 @@ export default class AttendanceLogOverrides extends Component {
             ]
         });
 
+        $('.edit-override').off();
         $('.delete-override').off();
+        $(document).on('click', '.edit-override', function(e) {
+            const attendanceLogOverrideId = $(e.currentTarget).data('id');
+            const attendanceLogOverrideDate = $(e.currentTarget).data('log-date');
+            const attendanceLogOverrideRole = $(e.currentTarget).data('role');
+            const attendanceLogOverrideExpectedTimeIn = $(e.currentTarget).data('expected-time-in');
+            const attendanceLogOverrideExpectedTimeOut = $(e.currentTarget).data('expected-time-out');
+            const attendanceLogOverrideLogTimeIn = $(e.currentTarget).data('log-time-in');
+            const attendanceLogOverrideLogTimeOut = $(e.currentTarget).data('log-time-out');
+            const attendanceLogOverrideReason = $(e.currentTarget).data('reason');
+
+            self.setState({
+                isShowAddEditAttendanceLogOverrideModal: true,
+                isEditOverride: true,
+                attendanceLogOverrideId,
+                attendanceLogOverrideDate,
+                attendanceLogOverrideRole: { label: attendanceLogOverrideRole, value: attendanceLogOverrideRole },
+                attendanceLogOverrideExpectedTimeIn,
+                attendanceLogOverrideExpectedTimeOut,
+                attendanceLogOverrideLogTimeIn,
+                attendanceLogOverrideLogTimeOut,
+                attendanceLogOverrideReason,
+            });
+        });
         $(document).on('click', '.delete-override', function(e) {
             const attendanceLogOverrideId = $(e.currentTarget).data('id');
             const attendanceLogOverrideDate = $(e.currentTarget).data('log-date');
@@ -72,7 +108,7 @@ export default class AttendanceLogOverrides extends Component {
                 isDeleteOverride: true,
                 attendanceLogOverrideId,
                 attendanceLogOverrideDate,
-                attendanceLogOverrideRole,
+                attendanceLogOverrideRole: { label: attendanceLogOverrideRole, value: attendanceLogOverrideRole },
             });
         });
     }
@@ -106,7 +142,16 @@ export default class AttendanceLogOverrides extends Component {
         const self = this;
         self.setState({
             attendanceLogOverrideId: '',
+            attendanceLogOverrideDate: '',
+            attendanceLogOverrideRole: '',
+            attendanceLogOverrideExpectedTimeIn: '',
+            attendanceLogOverrideExpectedTimeOut: '',
+            attendanceLogOverrideLogTimeIn: '',
+            attendanceLogOverrideLogTimeOut: '',
+            attendanceLogOverrideReason: '',
             isShowAddEditAttendanceLogOverrideModal: true,
+            isEditOverride: false,
+            isDeleteOverride: false,
         });
     }
 
@@ -126,7 +171,7 @@ export default class AttendanceLogOverrides extends Component {
                 self.setState({
                     attendanceLogOverrideId: '',
                     attendanceLogOverrideDate: '',
-                    attendanceLogOverrideRole: '',
+                    attendanceLogOverrideRole: {},
                     isDeleteOverride: false,
                 });
                 table.ajax.reload(null, false);
@@ -141,9 +186,32 @@ export default class AttendanceLogOverrides extends Component {
             attendanceLogOverrideId,
             attendanceLogOverrideDate,
             attendanceLogOverrideRole,
+            attendanceLogOverrideExpectedTimeIn,
+            attendanceLogOverrideExpectedTimeOut,
+            attendanceLogOverrideLogTimeIn,
+            attendanceLogOverrideLogTimeOut,
+            attendanceLogOverrideReason,
             isShowAddEditAttendanceLogOverrideModal,
             isDeleteOverride,
+            isEditOverride,
         } = this.state;
+
+        const convertTime12to24 = (time12h) => {
+            const [time, modifier] = time12h.split(' ');
+            
+            let [hours, minutes] = time.split(':');
+            
+            if (hours === '12') {
+                hours = '00';
+            }
+            
+            if (modifier === 'PM') {
+                hours = parseInt(hours, 10) + 12;
+            }
+            
+            return `${hours}:${minutes}`;
+        }
+
         return (
             <div className="container-fluid my-4">
                 <h1><i className="fa fa-calendar-plus-o"></i> Attendance Log Overrides</h1>
@@ -160,7 +228,7 @@ export default class AttendanceLogOverrides extends Component {
                     <div className="col-md-12">
                         <Card>
                             <Card.Body>
-                                <table ref="attendanceLogOverridesList" className="table table-striped" style={{width: 100+'%'}}>
+                                <table ref="attendanceLogOverridesList" className="table table-striped nowrap" style={{width: 100+'%'}}>
                                     <thead>
                                         <tr>
                                             <th scope="col">Log Date</th>
@@ -181,13 +249,30 @@ export default class AttendanceLogOverrides extends Component {
                 </div>
                 <AttendanceLogOverridesAddEditModal
                     isShow={isShowAddEditAttendanceLogOverrideModal}
+                    isEdit={isEditOverride}
+                    overrideId={attendanceLogOverrideId}
+                    overrideDate={attendanceLogOverrideDate}
+                    overrideRole={attendanceLogOverrideRole}
+                    overrideExpectedTimeIn={attendanceLogOverrideExpectedTimeIn !== 'N/A' &&
+                        attendanceLogOverrideExpectedTimeIn
+                        ? convertTime12to24(attendanceLogOverrideExpectedTimeIn) : null}
+                    overrideExpectedTimeOut={attendanceLogOverrideExpectedTimeOut !== 'N/A' &&
+                        attendanceLogOverrideExpectedTimeOut
+                        ? convertTime12to24(attendanceLogOverrideExpectedTimeOut) : null}
+                    overrideLogTimeIn={attendanceLogOverrideLogTimeIn !== 'N/A' &&
+                        attendanceLogOverrideLogTimeIn
+                        ? convertTime12to24(attendanceLogOverrideLogTimeIn) : null}
+                    overrideLogTimeOut={attendanceLogOverrideLogTimeOut !== 'N/A' &&
+                        attendanceLogOverrideLogTimeOut
+                        ? convertTime12to24(attendanceLogOverrideLogTimeOut) : null}
+                    overrideReason={attendanceLogOverrideReason}
                     handleClose={this.handleCloseAttendanceLogOverrideModal}
                     handleSubmit={this.handleSubmitAttendanceLogOverrideModal}/>
 
                 <CommonDeleteModal
                     isShow={isDeleteOverride}
                     headerTitle="Delete Attendance Log Override"
-                    bodyText={`Delete ${attendanceLogOverrideDate} attendance log override for ${attendanceLogOverrideRole}?`}
+                    bodyText={`Delete ${attendanceLogOverrideDate} attendance log override for ${attendanceLogOverrideRole ? attendanceLogOverrideRole.value : ''}?`}
                     handleClose={this.handleCloseDeleteAttendanceLogOverrideModal}
                     handleSubmit={this.handleSubmitDeleteAttendanceLogOverrideModal}/>
             </div>

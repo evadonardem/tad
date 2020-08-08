@@ -29,7 +29,7 @@ export default class CommonDropdownSelectSingleRoles extends Component {
     }
 
     render() {
-        const { name, selectedRole, handleChange, errorMessage } = this.props;
+        const { name, isDisabled, selectedRole, handleChange, errorMessage } = this.props;
         const { options } = this.state;
 
         return (
@@ -37,7 +37,13 @@ export default class CommonDropdownSelectSingleRoles extends Component {
                 <Form.Label>Select Role:</Form.Label>
                 {
                     options &&
-                    <Select name={name} isClearable options={options} value={selectedRole} onChange={handleChange}/>
+                    <Select
+                        name={name}
+                        isDisabled={isDisabled}
+                        isClearable
+                        options={options}
+                        value={selectedRole}
+                        onChange={handleChange}/>
                 }
                 <div className="invalid-feedback d-block">
                     { errorMessage && errorMessage }
