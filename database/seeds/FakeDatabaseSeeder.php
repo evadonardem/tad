@@ -13,8 +13,6 @@ class FakeDatabaseSeeder extends Seeder
      */
     public function run()
     {
-        AttendanceLog::whereNotNull('id')->delete();
-        User::whereNotNull('id')->delete();
         $this->call(FakeUsersTableSeeder::class);
         $this->call(FakeAttendanceLogsTableSeeder::class);
     }

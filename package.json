@@ -10,16 +10,41 @@
         "production": "cross-env NODE_ENV=production node_modules/webpack/bin/webpack.js --no-progress --hide-modules --config=node_modules/laravel-mix/setup/webpack.config.js"
     },
     "devDependencies": {
-        "axios": "^0.18",
+        "@babel/preset-react": "^7.0.0",
+        "axios": "^0.18.1",
         "bootstrap": "^4.1.0",
         "cross-env": "^5.1",
-        "jquery": "^3.2",
+        "datatables.net": "^1.10.21",
+        "jquery": "^3.5.1",
         "laravel-mix": "^4.0.7",
         "lodash": "^4.17.5",
         "popper.js": "^1.12",
+        "react": "^16.2.0",
+        "react-dom": "^16.2.0",
         "resolve-url-loader": "^2.3.1",
         "sass": "^1.15.2",
-        "sass-loader": "^7.1.0",
-        "vue": "^2.5.17"
+        "sass-loader": "^7.1.0"
+    },
+    "dependencies": {
+        "datatables.net-autofill-bs4": "^2.3.5",
+        "datatables.net-bs4": "^1.10.21",
+        "datatables.net-buttons-bs4": "^1.6.2",
+        "datatables.net-colreorder-bs4": "^1.5.2",
+        "datatables.net-fixedcolumns-bs4": "^3.3.1",
+        "datatables.net-fixedheader-bs4": "^3.1.7",
+        "datatables.net-keytable-bs4": "^2.5.2",
+        "datatables.net-responsive-bs4": "^2.2.5",
+        "datatables.net-rowgroup-bs4": "^1.1.2",
+        "datatables.net-rowreorder-bs4": "^1.2.7",
+        "datatables.net-scroller-bs4": "^2.0.2",
+        "datatables.net-searchpanes-bs4": "^1.1.1",
+        "jszip": "^3.4.0",
+        "pdfmake": "^0.1.65",
+        "react-bootstrap": "^1.0.1",
+        "react-cookies": "^0.1.1",
+        "react-router-dom": "^5.2.0",
+        "react-select": "^3.1.0",
+        "sanitize-filename": "^1.6.3",
+        "uuid": "^8.2.0"
     }
 }

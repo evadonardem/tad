@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\V1;
 
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\StoreUserRequest;
 use App\ZKLib\ZKLibrary;
 use App\User;
 use App\Models\AttendanceLog;
@@ -18,7 +19,7 @@ class BiometricUsersController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function index()
+    public function index(Request $request)
     {
         $users = User::orderBy('name', 'asc')->get();
         $users->each(function ($user) {
@@ -32,6 +33,17 @@ class BiometricUsersController extends Controller
             }
         });
 
+        $filters = $request->input('filters');
+        if (!empty($filters)) {
+            if (array_key_exists('role_id', $filters)) {
+                $roleId = $filters['role_id'];
+                $users = $users->filter(function($user) use ($roleId) {
+                    return $user->role == $roleId;
+                });
+            }
+        }
+        
+        $users = array_values($users->toArray());
         return response()->json(['data' => $users]);
     }
 
@@ -41,7 +53,7 @@ class BiometricUsersController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function store(Request $request)
+    public function store(StoreUserRequest $request)
     {
         $attributes = $request->only([
             'biometric_id',
