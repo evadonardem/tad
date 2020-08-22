@@ -40,7 +40,12 @@ try {
 
     $.extend( true, $.fn.dataTable.defaults, {
         dom: '<"data-table-wrapper"Blftipr>',
-        lengthChange: false
+        language: {
+            loadingRecords: '&nbsp;',
+            processing: '<span class="fa fa-spin fa-spinner"></span> Loading...',
+        },
+        lengthChange: false,
+        processing: true,
     });
 
 } catch (e) {}
